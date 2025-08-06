@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'login_screen.dart';
 import 'test_screen.dart';
 
@@ -110,12 +111,14 @@ class HomeScreen extends StatelessWidget {
                                 );
                               },
                               child: Container(
-                                height: 120,
+                                height: 140,
                                 margin: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -150,12 +153,14 @@ class HomeScreen extends StatelessWidget {
                           // Top Right - History
                           Expanded(
                             child: Container(
-                              height: 120,
+                              height: 140,
                               margin: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Colors.blue.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -193,12 +198,14 @@ class HomeScreen extends StatelessWidget {
                           // Bottom Left - My Profile
                           Expanded(
                             child: Container(
-                              height: 120,
+                              height: 140,
                               margin: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Colors.blue.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -236,12 +243,14 @@ class HomeScreen extends StatelessWidget {
                                 _showLogoutDialog(context);
                               },
                               child: Container(
-                                height: 120,
+                                height: 140,
                                 margin: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -292,10 +301,7 @@ class HomeScreen extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.grey[900],
-          title: const Text(
-            'Logout',
-            style: TextStyle(color: Colors.white),
-          ),
+          title: const Text('Logout', style: TextStyle(color: Colors.white)),
           content: const Text(
             'Are you sure you want to logout?',
             style: TextStyle(color: Colors.white),
@@ -305,10 +311,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.blue),
-              ),
+              child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
             ),
             TextButton(
               onPressed: () {
@@ -319,14 +322,11 @@ class HomeScreen extends StatelessWidget {
                   (route) => false,
                 );
               },
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
       },
     );
   }
-} 
+}
