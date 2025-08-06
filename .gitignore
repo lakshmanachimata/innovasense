@@ -106,7 +106,8 @@ unlinked_spec.ds
 
 # Coverage
 coverage/
-
+*.DS_Store
+.idea/
 # Symbols
 app.*.symbols
 
