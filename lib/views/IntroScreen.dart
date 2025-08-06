@@ -1,4 +1,4 @@
-import 'package:Innovosense/views/welcome_screen.dart';
+import 'package:FitApp/views/welcome_screen.dart';
 import 'package:flutter/material.dart';
 
 class IntroScreen extends StatelessWidget {

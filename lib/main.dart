@@ -1,4 +1,4 @@
-import 'package:Innovosense/views/IntroScreen.dart';
+import 'package:FitApp/views/IntroScreen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
