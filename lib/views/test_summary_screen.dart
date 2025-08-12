@@ -15,86 +15,6 @@ class TestSummaryScreen extends StatefulWidget {
 class _TestSummaryScreenState extends State<TestSummaryScreen> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<HydrationViewModel>(
-      builder: (context, hydrationViewModel, child) {
-        if (hydrationViewModel.isLoading) {
-          return _buildLoadingScreen();
-        }
-
-        if (hydrationViewModel.error != null) {
-          return _buildErrorScreen(hydrationViewModel.error!);
-        }
-
-        if (!hydrationViewModel.hasData) {
-          return _buildNoDataScreen();
-        }
-
-        return _buildSummaryScreen(hydrationViewModel);
-      },
-    );
-  }
-
-  Widget _buildLoadingScreen() {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(String error) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 64),
-            const SizedBox(height: 16),
-            Text(
-              'Error: $error',
-              style: const TextStyle(color: Colors.white, fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Go Back'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoDataScreen() {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.info_outline, color: Colors.blue, size: 64),
-            const SizedBox(height: 16),
-            const Text(
-              'No test data available',
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Go Back'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryScreen(HydrationViewModel hydrationViewModel) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -183,48 +103,31 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 30),
-
-                          // Basic Information Card
-                          _buildInfoCard(
-                            'Basic Information',
-                            hydrationViewModel.getFormattedData()['basic_info'],
+                          
+                          // Hydration Data Cards (if available)
+                          Consumer<HydrationViewModel>(
+                            builder: (context, hydrationViewModel, child) {
+                              if (hydrationViewModel.hasData) {
+                                return Column(
+                                  children: [
+                                    // Basic Info Card
+                                    _buildInfoCard(
+                                      'Test Results',
+                                      {
+                                        'BMI': '${hydrationViewModel.hydrationData?.bmi.toStringAsFixed(2) ?? 'N/A'}',
+                                        'TBSA': '${hydrationViewModel.hydrationData?.tbsa.toStringAsFixed(2) ?? 'N/A'}',
+                                        'Sweat Rate': '${hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
+                                        'Sweat Loss': '${hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
                           ),
-
-                          const SizedBox(height: 20),
-
-                          // Measurements Card
-                          _buildInfoCard(
-                            'Measurements',
-                            hydrationViewModel
-                                .getFormattedData()['measurements'],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Sweat Analysis Card
-                          _buildInfoCard(
-                            'Sweat Analysis',
-                            hydrationViewModel
-                                .getFormattedData()['sweat_analysis'],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Sweat Summary Card
-                          if (hydrationViewModel.sweatSummary.isNotEmpty)
-                            _buildSweatSummaryCard(
-                              hydrationViewModel.sweatSummary,
-                            ),
-
-                          const SizedBox(height: 20),
-
-                          // Sweat Rate Summary Card
-                          if (hydrationViewModel.sweatRateSummary.isNotEmpty)
-                            _buildSweatRateSummaryCard(
-                              hydrationViewModel.sweatRateSummary,
-                            ),
-
-                          const SizedBox(height: 40),
+                          
                           const SizedBox(height: 8),
                           // Timestamp
                           const Text(
@@ -277,6 +180,55 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(String title, Map<String, dynamic> data) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...data.entries.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    entry.key,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  Text(
+                    entry.value.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -352,198 +304,5 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildInfoCard(String title, Map<String, dynamic> data) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...data.entries.map(
-            (entry) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    entry.key,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  Text(
-                    entry.value.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSweatSummaryCard(List<dynamic> sweatSummary) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Sweat Summary',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...sweatSummary.map(
-            (summary) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Range: ${summary.sweatRange}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Implications: ${summary.implications}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Recommendation: ${summary.recomm}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Strategy: ${summary.strategy}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Result: ${summary.result}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSweatRateSummaryCard(List<dynamic> sweatRateSummary) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Hydration Status',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...sweatRateSummary.map(
-            (summary) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: _getColorFromString(summary.color),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${summary.hydStatus} (${summary.lowLimit}-${summary.highLimit})',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  summary.comments,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Recommendation: ${summary.recomm}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getColorFromString(String colorString) {
-    switch (colorString.toLowerCase()) {
-      case 'red':
-        return Colors.red;
-      case 'yellow':
-        return Colors.yellow;
-      case 'green':
-        return Colors.green;
-      case 'blue':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
   }
 }
