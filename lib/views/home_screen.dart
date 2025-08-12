@@ -105,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const SizedBox(height: 40),
                       const Text(
-                        'Welcome,',
+                        'Welcome',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
