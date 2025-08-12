@@ -1,6 +1,6 @@
+import 'package:FitApp/views/otp_screen.dart';
 import 'package:flutter/material.dart';
 
-import 'login_screen.dart';
 import 'test_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -318,7 +318,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.of(context).pop();
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(builder: (context) => const OTPScreen()),
                   (route) => false,
                 );
               },

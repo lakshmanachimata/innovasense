@@ -16,8 +16,8 @@ class ApiConfig {
 
   // Get the appropriate URL based on platform
   static String get baseUrl {
-    // Using your machine's IP address for physical device testing
-    return physicalDeviceUrl;
+    // Using localhost for local testing
+    return 'http://192.168.1.5:8500';
   }
 
   // Banner API endpoint
