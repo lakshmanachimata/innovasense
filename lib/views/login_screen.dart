@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'otp_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -43,7 +44,7 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     // Login Instruction
                     const Text(
-                      'Simply Login with your mobile number',
+                      'Simply Login with your CNumber',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -52,7 +53,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    // Mobile Number Input
+                    // CNumber Input
                     Container(
                       decoration: BoxDecoration(
                         border: Border(
@@ -62,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                       child: const TextField(
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'Mobile number',
+                          hintText: 'CNumber',
                           hintStyle: TextStyle(color: Colors.white),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 16),

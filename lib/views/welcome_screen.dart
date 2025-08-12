@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../services/image_url_service.dart';
 import '../viewmodels/banner_viewmodel.dart';
-import 'login_screen.dart';
+import 'otp_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -315,7 +315,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
+                                builder: (context) => const OTPScreen(),
                               ),
                             );
                           },
