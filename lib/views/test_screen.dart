@@ -2,12 +2,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
+import '../config/api_config.dart';
+import '../services/hydration_service.dart';
+import '../services/image_upload_service.dart';
+import '../services/user_service.dart';
+import '../viewmodels/hydration_viewmodel.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'test_summary_screen.dart';
-import '../services/user_service.dart';
-import '../services/image_upload_service.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -19,34 +23,35 @@ class TestScreen extends StatefulWidget {
 class _TestScreenState extends State<TestScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
-  
+
   // Store uploaded image response
   Map<String, dynamic>? _uploadedImageResponse;
-  
+
   // Track submission state
   bool _isSubmitting = false;
-  
+
   // Form controllers for the 5 test parameters
   final TextEditingController _deviceTypeController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _sweatPositionController = TextEditingController();
+  final TextEditingController _sweatPositionController =
+      TextEditingController();
   final TextEditingController _timeTakenController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
-  
+
   // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    
+
     // Add listeners to all text controllers to update UI when text changes
     _deviceTypeController.addListener(() => setState(() {}));
     _heightController.addListener(() => setState(() {}));
     _sweatPositionController.addListener(() => setState(() {}));
     _timeTakenController.addListener(() => setState(() {}));
     _weightController.addListener(() => setState(() {}));
-    
+
     // Load user details and prefill height and weight fields
     _loadUserDetails();
   }
@@ -64,10 +69,10 @@ class _TestScreenState extends State<TestScreen> {
   // Helper method to check if all form fields are filled
   bool _areAllFieldsFilled() {
     return _deviceTypeController.text.trim().isNotEmpty &&
-         _heightController.text.trim().isNotEmpty &&
-         _sweatPositionController.text.trim().isNotEmpty &&
-         _timeTakenController.text.trim().isNotEmpty &&
-         _weightController.text.trim().isNotEmpty;
+        _heightController.text.trim().isNotEmpty &&
+        _sweatPositionController.text.trim().isNotEmpty &&
+        _timeTakenController.text.trim().isNotEmpty &&
+        _weightController.text.trim().isNotEmpty;
   }
 
   // Load user details and prefill height and weight fields
@@ -80,13 +85,13 @@ class _TestScreenState extends State<TestScreen> {
           if (userDetails['height'] != null) {
             _heightController.text = userDetails['height'].toString();
           }
-          
+
           // Prefill weight if available
           if (userDetails['weight'] != null) {
             _weightController.text = userDetails['weight'].toString();
           }
         });
-        
+
         print(
           'User details loaded and prefilled: height=${userDetails['height']}, weight=${userDetails['weight']}',
         );
@@ -122,42 +127,76 @@ class _TestScreenState extends State<TestScreen> {
 
       // First upload the image
       print('Starting image upload...');
-      final uploadResponse = await ImageUploadService.uploadImage(_selectedImage!);
-      
+      final uploadResponse = await ImageUploadService.uploadImage(
+        _selectedImage!,
+      );
+
       // Store the upload response
       _uploadedImageResponse = uploadResponse;
-      
-      print('Image uploaded successfully: ${uploadResponse['response']['filename']}');
-      
+
+      print(
+        'Image uploaded successfully: ${uploadResponse['response']['filename']}',
+      );
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Image uploaded: ${uploadResponse['response']['filename']}'),
+          content: Text(
+            'Image uploaded: ${uploadResponse['response']['filename']}',
+          ),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Now collect test data with image path
-      final testData = {
-        "device_type": int.tryParse(_deviceTypeController.text) ?? 0,
-        "height": int.tryParse(_heightController.text) ?? 0,
-        "sweat_position": int.tryParse(_sweatPositionController.text) ?? 0,
-        "time_taken": int.tryParse(_timeTakenController.text) ?? 0,
-        "weight": int.tryParse(_weightController.text) ?? 0,
-        "image_path": uploadResponse['response']['filepath'], // Add image path from upload response
+      // Now call the hydration API with the uploaded image path
+      print('Calling hydration API...');
+
+      // Construct the full image path using base URL and uploaded filepath
+      final fullImagePath =
+          '${ApiConfig.baseUrl.replaceAll(':8500', ':8550')}/assets/innovo/${uploadResponse['response']['filename']}';
+      print('Full image path for hydration API: $fullImagePath');
+
+      // Call hydration API
+      final hydrationResponse = await HydrationService.submitHydrationData(
+        deviceType: int.tryParse(_deviceTypeController.text) ?? 0,
+        height: int.tryParse(_heightController.text) ?? 0,
+        sweatPosition: int.tryParse(_sweatPositionController.text) ?? 0,
+        timeTaken: int.tryParse(_timeTakenController.text) ?? 0,
+        weight: int.tryParse(_weightController.text) ?? 0,
+        imagePath: fullImagePath,
+      );
+
+      print('Hydration API response received: ${hydrationResponse['code']}');
+
+      // Store the hydration response in the ViewModel
+      final hydrationViewModel = Provider.of<HydrationViewModel>(
+        context,
+        listen: false,
+      );
+      hydrationViewModel.setHydrationData(hydrationResponse);
+
+      // Store the image upload response for later use
+      _uploadedImageResponse = {
+        'image_upload': uploadResponse,
+        'hydration_data': hydrationResponse,
       };
 
-      print('Test data with image path: $testData');
-      print('Image filepath: ${uploadResponse['response']['filepath']}');
-      
-      // Navigate to TestSummaryScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const TestSummaryScreen(),
+      // Show success message for hydration
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Hydration analysis completed successfully!'),
+          backgroundColor: Colors.green,
         ),
       );
 
+      // Navigate to TestSummaryScreen - data is now available in HydrationViewModel
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              TestSummaryScreen(hydrationViewModel: hydrationViewModel),
+        ),
+      );
     } catch (e) {
       print('Error during submit: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -328,7 +367,9 @@ class _TestScreenState extends State<TestScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 ElevatedButton(
-                                  onPressed: _isSubmitting ? null : _uploadPicture,
+                                  onPressed: _isSubmitting
+                                      ? null
+                                      : _uploadPicture,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF1E3A8A),
                                     padding: const EdgeInsets.symmetric(
@@ -356,13 +397,17 @@ class _TestScreenState extends State<TestScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 ElevatedButton(
-                                  onPressed: (_selectedImage != null && _areAllFieldsFilled() && !_isSubmitting)
+                                  onPressed:
+                                      (_selectedImage != null &&
+                                          _areAllFieldsFilled() &&
+                                          !_isSubmitting)
                                       ? _handleSubmit
                                       : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor:
                                         (_selectedImage != null &&
-                                            _areAllFieldsFilled() && !_isSubmitting)
+                                            _areAllFieldsFilled() &&
+                                            !_isSubmitting)
                                         ? const Color(0xFF059669)
                                         : Colors.grey,
                                     padding: const EdgeInsets.symmetric(
@@ -374,7 +419,8 @@ class _TestScreenState extends State<TestScreen> {
                                       side: BorderSide(
                                         color:
                                             (_selectedImage != null &&
-                                                _areAllFieldsFilled() && !_isSubmitting)
+                                                _areAllFieldsFilled() &&
+                                                !_isSubmitting)
                                             ? Colors.white
                                             : Colors.grey,
                                         width: 1,
@@ -618,7 +664,7 @@ class _TestScreenState extends State<TestScreen> {
               ],
             ),
           ),
-          
+
           // Full-screen loader overlay during image upload
           if (_isSubmitting) _buildUploadLoader(),
         ],
@@ -653,7 +699,7 @@ class _TestScreenState extends State<TestScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Uploading Image...',
+                'Processing Test Data...',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -662,7 +708,7 @@ class _TestScreenState extends State<TestScreen> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Please wait while we upload your image.\nThis may take a few moments.',
+                'Please wait while we upload your image and\nanalyze your hydration data. This may take a few moments.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -682,9 +728,11 @@ class _TestScreenState extends State<TestScreen> {
                     height: 8,
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(
-                        (DateTime.now().millisecondsSinceEpoch / 600 + index) % 2 == 0 
-                            ? 1.0 
-                            : 0.3
+                        (DateTime.now().millisecondsSinceEpoch / 600 + index) %
+                                    2 ==
+                                0
+                            ? 1.0
+                            : 0.3,
                       ),
                       shape: BoxShape.circle,
                     ),

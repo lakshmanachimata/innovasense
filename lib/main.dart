@@ -3,6 +3,7 @@ import 'package:FitApp/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/banner_viewmodel.dart';
+import 'viewmodels/hydration_viewmodel.dart';
 import 'services/user_service.dart';
 
 void main() {
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => BannerViewModel()),
+        ChangeNotifierProvider(create: (_) => HydrationViewModel()),
       ],
       child: MaterialApp(
         title: 'Fit Data App',
