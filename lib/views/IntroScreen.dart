@@ -1,8 +1,136 @@
+import 'dart:async';
+
 import 'package:FitApp/views/welcome_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class IntroScreen extends StatelessWidget {
+import '../models/banner_model.dart';
+import '../services/image_url_service.dart';
+import '../viewmodels/banner_viewmodel.dart';
+
+class IntroScreen extends StatefulWidget {
   const IntroScreen({super.key});
+
+  @override
+  State<IntroScreen> createState() => _IntroScreenState();
+}
+
+class _IntroScreenState extends State<IntroScreen> {
+  final PageController _pageController = PageController();
+  Timer? _autoPlayTimer;
+  bool _autoPlayStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch banner images when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bannerViewModel = context.read<BannerViewModel>();
+      bannerViewModel.fetchBannerImages();
+      
+      // Listen to banner changes
+      bannerViewModel.addListener(() {
+        if (bannerViewModel.hasBanners && !_autoPlayStarted) {
+          print('BannerViewModel changed, resetting auto-play');
+          _resetAutoPlay();
+          _startAutoPlay(bannerViewModel);
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _autoPlayTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoPlay(BannerViewModel bannerViewModel) {
+    // Only start auto-play once
+    if (_autoPlayStarted) return;
+    
+    _autoPlayTimer?.cancel();
+    if (bannerViewModel.banners.length > 1) {
+      _autoPlayStarted = true;
+      _autoPlayTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+        if (bannerViewModel.currentIndex < bannerViewModel.banners.length - 1) {
+          _pageController.animateToPage(
+            bannerViewModel.currentIndex + 1,
+            duration: Duration(milliseconds: 800),
+            curve: Curves.fastOutSlowIn,
+          );
+        } else {
+          _pageController.animateToPage(
+            0,
+            duration: Duration(milliseconds: 800),
+            curve: Curves.fastOutSlowIn,
+          );
+        }
+      });
+      print('Auto-play started with ${bannerViewModel.banners.length} banners');
+    }
+  }
+  
+  void _resetAutoPlay() {
+    _autoPlayStarted = false;
+    _autoPlayTimer?.cancel();
+    print('Auto-play reset');
+  }
+  
+  void _handleBannerRefresh(BannerViewModel bannerViewModel) {
+    print('Handling banner refresh, resetting auto-play');
+    _resetAutoPlay();
+    if (bannerViewModel.hasBanners) {
+      _startAutoPlay(bannerViewModel);
+    }
+  }
+
+  Widget _buildBannerImage(String imagePath) {
+    // Convert asset path to remote URL if needed
+    String finalImagePath = ImageUrlService.getBannerUrl(imagePath);
+
+    return Image.network(
+      finalImagePath,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          color: Colors.grey[800],
+          child: Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        print('Error loading image: $finalImagePath - $error');
+        return Container(
+          color: Colors.grey[800],
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_not_supported, color: Colors.white, size: 50),
+                SizedBox(height: 8),
+                Text(
+                  'Image not found',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,16 +138,118 @@ class IntroScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background Image
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/intro_bg.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+          // Banner Slider Background
+          Selector<BannerViewModel, List<BannerModel>>(
+            selector: (context, bannerViewModel) => bannerViewModel.banners,
+            builder: (context, List<BannerModel> banners, child) {
+              final bannerViewModel = context.read<BannerViewModel>();
+              
+              // Only rebuild when banners list changes
+              final bannerCount = banners.length;
+              final bannerPaths = banners.map((b) => b.imagePath).toList();
+              
+              print('Selector rebuild - Banner count: $bannerCount, Paths: $bannerPaths');
+              
+              if (bannerViewModel.isLoading) {
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/intro_bg.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              }
+              
+              if (bannerViewModel.error != null) {
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/intro_bg.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              }
+              
+              if (bannerViewModel.banners.isEmpty) {
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/intro_bg.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              }
+
+              // Start auto-play when banners are loaded
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (bannerViewModel.hasBanners && !_autoPlayStarted) {
+                  _startAutoPlay(bannerViewModel);
+                }
+              });
+              
+
+              
+              return PageView.builder(
+                key: ValueKey('banner_pageview_${banners.length}_${bannerViewModel.instanceId}'),
+                controller: _pageController,
+                onPageChanged: (index) {
+                  bannerViewModel.setCurrentIndex(index);
+                },
+                itemCount: banners.length,
+                itemBuilder: (context, index) {
+                  final banner = banners[index];
+                  print('Building PageView item $index: ${banner.imagePath}');
+                  print('Total banners in PageView: ${banners.length}');
+                  print('All banner paths: ${banners.map((b) => b.imagePath).toList()}');
+                  
+                  return Container(
+                    key: ValueKey('banner_item_${banner.id}_${banner.imagePath}'),
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: _buildBannerImage(banner.imagePath),
+                  );
+                },
+              );
+            },
+          ),
+          // Loading overlay when banners are loading
+          Consumer<BannerViewModel>(
+            builder: (context, bannerViewModel, child) {
+              if (bannerViewModel.isLoading) {
+                return Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: Colors.white),
+                        SizedBox(height: 16),
+                        Text(
+                          'Loading banners...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return SizedBox.shrink();
+            },
           ),
           // Dark overlay with wave design
           Container(
@@ -43,41 +273,42 @@ class IntroScreen extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                const Spacer(),
-                // Pagination indicators
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue,
-                        borderRadius: BorderRadius.circular(4),
+                // Banner pagination indicators at the top
+                Consumer<BannerViewModel>(
+                  builder: (context, bannerViewModel, child) {
+                    if (bannerViewModel.banners.isEmpty) return SizedBox.shrink();
+                    
+                    return Container(
+                      margin: EdgeInsets.only(top: 20),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 8),
+                          // Pagination dots
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: bannerViewModel.banners.asMap().entries.map(
+                              (entry) {
+                                return Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: EdgeInsets.symmetric(horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    color: bannerViewModel.currentIndex == entry.key
+                                        ? Colors.white
+                                        : Colors.white.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 20),
-                // Main text content
+                const Spacer(),
+                // Main text content (keeping existing test content)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
@@ -97,7 +328,6 @@ class IntroScreen extends StatelessWidget {
                       // Body text
                       const Text(
                         "Dehydration is the silent killer of\nperformance. Fight fatigue, boost\nyour strength, and protect your\nhealth by keeping your body\nfueled with the water it needs to\nsucceed.",
-                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -108,7 +338,7 @@ class IntroScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Skip button
+                // Skip button (keeping existing test content)
                 Align(
                   alignment: Alignment.centerRight,
                   child: Padding(
