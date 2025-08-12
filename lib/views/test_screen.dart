@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'test_summary_screen.dart';
+import '../services/user_service.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -17,6 +18,76 @@ class TestScreen extends StatefulWidget {
 class _TestScreenState extends State<TestScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  
+  // Form controllers for the 5 test parameters
+  final TextEditingController _deviceTypeController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _sweatPositionController = TextEditingController();
+  final TextEditingController _timeTakenController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  
+  // Form key for validation
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Add listeners to all text controllers to update UI when text changes
+    _deviceTypeController.addListener(() => setState(() {}));
+    _heightController.addListener(() => setState(() {}));
+    _sweatPositionController.addListener(() => setState(() {}));
+    _timeTakenController.addListener(() => setState(() {}));
+    _weightController.addListener(() => setState(() {}));
+    
+    // Load user details and prefill height and weight fields
+    _loadUserDetails();
+  }
+
+  @override
+  void dispose() {
+    _deviceTypeController.dispose();
+    _heightController.dispose();
+    _sweatPositionController.dispose();
+    _timeTakenController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
+  // Helper method to check if all form fields are filled
+  bool _areAllFieldsFilled() {
+    return _deviceTypeController.text.trim().isNotEmpty &&
+           _heightController.text.trim().isNotEmpty &&
+           _sweatPositionController.text.trim().isNotEmpty &&
+           _timeTakenController.text.trim().isNotEmpty &&
+           _weightController.text.trim().isNotEmpty;
+  }
+
+  // Load user details and prefill height and weight fields
+  Future<void> _loadUserDetails() async {
+    try {
+      final userDetails = await UserService.getUserDetails();
+      if (userDetails != null) {
+        setState(() {
+          // Prefill height if available
+          if (userDetails['height'] != null) {
+            _heightController.text = userDetails['height'].toString();
+          }
+          
+          // Prefill weight if available
+          if (userDetails['weight'] != null) {
+            _weightController.text = userDetails['weight'].toString();
+          }
+        });
+        
+        print('User details loaded and prefilled: height=${userDetails['height']}, weight=${userDetails['weight']}');
+      } else {
+        print('No user details found to prefill');
+      }
+    } catch (e) {
+      print('Error loading user details: $e');
+    }
+  }
 
   Future<void> _uploadPicture() async {
     try {
@@ -46,9 +117,10 @@ class _TestScreenState extends State<TestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+          return Scaffold(
+        backgroundColor: Colors.black,
+        resizeToAvoidBottomInset: true,
+        body: Stack(
         children: [
           // Background Image
           Container(
@@ -115,150 +187,201 @@ class _TestScreenState extends State<TestScreen> {
                     ),
                   ),
                 ),
-                // Main Content
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        // Headline Text
-                        const Text(
-                          'Hydrate Smarter.\nPerform Better.',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
+                                  // Main Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 24.0,
+                          right: 24.0,
+                          top: 24.0,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
                         ),
-                        const SizedBox(height: 16),
-                        // Picture Placeholder
-                        Center(
-                          child: Container(
-                            width: 200,
-                            height: 200,
-                            decoration: BoxDecoration(
+                        child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [                        // Headline Text
+                          const Text(
+                            'Hydrate Smarter.\nPerform Better.',
+                            style: TextStyle(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
                             ),
-                            child: _selectedImage != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                      _selectedImage!,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.landscape,
-                                    color: Colors.grey,
-                                    size: 80,
-                                  ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Upload Picture and Submit Buttons
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _uploadPicture,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF1E3A8A),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: const BorderSide(
-                                      color: Colors.white,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  _selectedImage != null ? 'Change Picture' : 'Upload Picture',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                          const SizedBox(height: 16),
+                          // Picture Placeholder
+                          Center(
+                            child: Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              const SizedBox(width: 16),
-                              ElevatedButton(
-                                onPressed: _selectedImage != null ? () {
-                                  // Navigate to TestSummaryScreen
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const TestSummaryScreen(),
+                              child: _selectedImage != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.file(
+                                        _selectedImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.landscape,
+                                      color: Colors.grey,
+                                      size: 80,
                                     ),
-                                  );
-                                } : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _selectedImage != null 
-                                      ? const Color(0xFF059669) 
-                                      : Colors.grey,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    side: BorderSide(
-                                      color: _selectedImage != null ? Colors.white : Colors.grey,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Submit',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 40),
-                        // Input Fields - Scrollable List
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
+                          const SizedBox(height: 16),
+                          // Upload Picture and Submit Buttons
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildInputField('01', 'Enter your data here...'),
+                                ElevatedButton(
+                                  onPressed: _uploadPicture,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1E3A8A),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: const BorderSide(
+                                        color: Colors.white,
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _selectedImage != null ? 'Change Picture' : 'Upload Picture',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                ElevatedButton(
+                                  onPressed: (_selectedImage != null && _areAllFieldsFilled()) ? () {
+                                    // Validate form and collect data
+                                    if (_formKey.currentState!.validate()) {
+                                      // Collect test data
+                                      final testData = {
+                                        "device_type": int.tryParse(_deviceTypeController.text) ?? 0,
+                                        "height": int.tryParse(_heightController.text) ?? 0,
+                                        "sweat_position": int.tryParse(_sweatPositionController.text) ?? 0,
+                                        "time_taken": int.tryParse(_timeTakenController.text) ?? 0,
+                                        "weight": int.tryParse(_weightController.text) ?? 0,
+                                      };
+                                      
+                                      print('Test data collected: $testData');
+                                      
+                                      // Navigate to TestSummaryScreen
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const TestSummaryScreen(),
+                                        ),
+                                      );
+                                    }
+                                  } : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: (_selectedImage != null && _areAllFieldsFilled())
+                                        ? const Color(0xFF059669) 
+                                        : Colors.grey,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(
+                                        color: (_selectedImage != null && _areAllFieldsFilled()) ? Colors.white : Colors.grey,
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Submit',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          // Test Parameters Form
+                          Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                                                 Row(
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     const Text(
+                                       'Test Parameters',
+                                       style: TextStyle(
+                                         color: Colors.white,
+                                         fontSize: 20,
+                                         fontWeight: FontWeight.bold,
+                                       ),
+                                     ),
+                                     IconButton(
+                                       onPressed: _loadUserDetails,
+                                       icon: const Icon(
+                                         Icons.refresh,
+                                         color: Colors.green,
+                                         size: 20,
+                                       ),
+                                       tooltip: 'Refresh profile data',
+                                     ),
+                                   ],
+                                 ),
+                                const SizedBox(height: 8),
+                                                                 const Text(
+                                   'All fields are mandatory *',
+                                   style: TextStyle(
+                                     color: Colors.white70,
+                                     fontSize: 14,
+                                     fontStyle: FontStyle.italic,
+                                   ),
+                                 ),
+                                 const SizedBox(height: 4),
+                                 const Text(
+                                   'Height and Weight are prefilled from your profile',
+                                   style: TextStyle(
+                                     color: Colors.green,
+                                     fontSize: 12,
+                                     fontStyle: FontStyle.italic,
+                                   ),
+                                 ),
                                 const SizedBox(height: 20),
-                                _buildInputField('02', 'Enter your data here...'),
+                                _buildTestParameterField('Device Type', _deviceTypeController, 'Enter device type (0-9)', isNumber: true),
                                 const SizedBox(height: 20),
-                                _buildInputField('03', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('04', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('05', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('06', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('07', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('08', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('09', 'Enter your data here...'),
-                                const SizedBox(height: 20),
-                                _buildInputField('10', 'Enter your data here...'),
+                                                                 _buildTestParameterField('Height (from profile)', _heightController, 'Enter height in cm', isNumber: true),
+                                 const SizedBox(height: 20),
+                                 _buildTestParameterField('Sweat Position', _sweatPositionController, 'Enter sweat position (0-9)', isNumber: true),
+                                 const SizedBox(height: 20),
+                                 _buildTestParameterField('Time Taken', _timeTakenController, 'Enter time taken in minutes', isNumber: true),
+                                 const SizedBox(height: 20),
+                                 _buildTestParameterField('Weight (from profile)', _weightController, 'Enter weight in kg', isNumber: true),
                                 const SizedBox(height: 40), // Extra padding at bottom
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -414,33 +537,54 @@ class _TestScreenState extends State<TestScreen> {
     );
   }
 
-  Widget _buildInputField(String label, String hint) {
-    return Row(
+  Widget _buildTestParameterField(String label, TextEditingController controller, String hint, {bool isNumber = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 40,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white, width: 1)),
-            ),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Colors.white70),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
+            ),
+            const Text(
+              ' *',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.white, width: 1)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '$label is required';
+              }
+              if (isNumber && int.tryParse(value.trim()) == null) {
+                return '$label must be a valid number';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.white70),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              errorStyle: TextStyle(color: Colors.red[300]),
             ),
           ),
         ),
