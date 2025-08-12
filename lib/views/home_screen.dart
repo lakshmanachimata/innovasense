@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/user_service.dart';
 
 import 'test_screen.dart';
+import 'profile_screen.dart';
+import 'otp_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +30,36 @@ class _HomeScreenState extends State<HomeScreen> {
         _userDetails = userDetails;
         _username = userDetails['username'] ?? 'User Name';
       });
+    }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    try {
+      // Clear all SharedPreferences
+      await UserService.logout();
+      
+      // Navigate to OTPScreen and clear all previous routes
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OTPScreen(),
+          ),
+          (route) => false, // This removes all previous routes
+        );
+      }
+    } catch (e) {
+      print('Error during logout: $e');
+      // Even if there's an error, still navigate to OTPScreen
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OTPScreen(),
+          ),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -62,13 +94,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Hamburger Menu
+                        // Logout Icon
                         GestureDetector(
                           onTap: () {
-                            _showLogoutDialog(context);
+                            _logout(context);
                           },
                           child: const Icon(
-                            Icons.menu,
+                            Icons.logout,
                             color: Colors.white,
                             size: 24,
                           ),
@@ -222,42 +254,52 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           // Bottom Left - My Profile
                           Expanded(
-                            child: Container(
-                              height: 140,
-                              margin: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProfileScreen(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                height: 140,
+                                margin: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.blue.withOpacity(0.3),
+                                      Colors.blue.withOpacity(0.1),
+                                    ],
+                                  ),
                                 ),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.blue.withOpacity(0.3),
-                                    Colors.blue.withOpacity(0.1),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 32,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'My Profile',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'My Profile',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
                           ),
