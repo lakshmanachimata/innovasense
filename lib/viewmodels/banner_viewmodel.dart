@@ -18,7 +18,6 @@ class BannerViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get currentIndex => _currentIndex;
-
   Future<void> fetchBannerImages() async {
     try {
       print('BannerViewModel [$_instanceId]: Starting to fetch banner images');
@@ -113,9 +112,10 @@ class BannerViewModel extends ChangeNotifier {
       'assets/banners/3.jpg',
     ];
 
-    final filtered = testPaths
-        .where((path) => path.contains('banner'))
-        .toList();
+    final filtered = testPaths.where((path) {
+      final filename = path.split('/').last;
+      return filename.contains('banner');
+    }).toList();
     print('Test paths: $testPaths');
     print('Filtered result: $filtered');
     print('Filtered count: ${filtered.length}');

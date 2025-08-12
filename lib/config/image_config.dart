@@ -1,8 +1,10 @@
 class ImageConfig {
   // Configure your image URLs here
 
-  // Option 1: Use your local server (if you have images stored there)
-  static const String localServerUrl = 'http://192.168.1.5:8500/assets/banners';
+  static const String localUrl = 'http://192.168.1.5:8500/assets/banners';
+
+  // Option 1: Use placeholder images for testing (since local banners were deleted)
+  static const String placeholderUrl = 'https://picsum.photos/800/400';
 
   // Option 2: Use a CDN service (recommended for production)
   static const String cdnUrl = 'https://your-cdn.com/banners';
@@ -11,15 +13,17 @@ class ImageConfig {
   static const String cloudStorageUrl =
       'https://your-bucket.s3.amazonaws.com/banners';
 
-  // Option 4: Use placeholder images for testing
-  static const String placeholderUrl = 'https://picsum.photos/400/200';
-
   // Current active URL - change this to switch between options
-  static String get activeImageUrl => localServerUrl;
+  static String get activeImageUrl => placeholderUrl;
 
   // Banner image URL builder
   static String getBannerUrl(String filename) {
-    return '$activeImageUrl/$filename';
+    return '$activeImageUrl?random=${filename.hashCode}';
+  }
+
+  // Banner image URL builder
+  static String localBannerUrl(String filename) {
+    return '$localUrl/$filename';
   }
 
   // Full image URL builder
@@ -28,8 +32,8 @@ class ImageConfig {
       return assetPath;
     }
 
-    // Extract filename from asset path
+    // Extract filename from asset path and create a unique placeholder
     String filename = assetPath.split('/').last;
-    return getBannerUrl(filename);
+    return localBannerUrl(filename);
   }
 }
