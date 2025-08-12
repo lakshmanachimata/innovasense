@@ -8,6 +8,7 @@ class BannerViewModel extends ChangeNotifier {
   final String _instanceId = DateTime.now().millisecondsSinceEpoch.toString();
 
   List<BannerModel> _banners = [];
+  List<BannerModel> _allBanners = [];
   bool _isLoading = false;
   String? _error;
   int _currentIndex = 0;
@@ -15,6 +16,8 @@ class BannerViewModel extends ChangeNotifier {
   String get instanceId => _instanceId;
 
   List<BannerModel> get banners => _banners;
+  List<BannerModel> get allBanners => _allBanners;
+
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get currentIndex => _currentIndex;
@@ -39,8 +42,8 @@ class BannerViewModel extends ChangeNotifier {
       });
 
       // Filter to only use images with "banner" in their names
-      final allBanners = response.response;
-      final filteredBanners = allBanners.where((banner) {
+      _allBanners = response.response;
+      final filteredBanners = _allBanners.where((banner) {
         // Extract filename from path and check if it contains "banner"
         final filename = banner.imagePath.split('/').last;
         final hasBanner = filename.contains('banner');
