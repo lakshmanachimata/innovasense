@@ -103,7 +103,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 30),
-                          
+
                           // Hydration Data Cards (if available)
                           Consumer<HydrationViewModel>(
                             builder: (context, hydrationViewModel, child) {
@@ -111,15 +111,16 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                                 return Column(
                                   children: [
                                     // Basic Info Card
-                                    _buildInfoCard(
-                                      'Test Results',
-                                      {
-                                        'BMI': '${hydrationViewModel.hydrationData?.bmi.toStringAsFixed(2) ?? 'N/A'}',
-                                        'TBSA': '${hydrationViewModel.hydrationData?.tbsa.toStringAsFixed(2) ?? 'N/A'}',
-                                        'Sweat Rate': '${hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
-                                        'Sweat Loss': '${hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
-                                      },
-                                    ),
+                                    _buildInfoCard('Test Results', {
+                                      'BMI':
+                                          '${hydrationViewModel.hydrationData?.bmi.toStringAsFixed(2) ?? 'N/A'}',
+                                      'TBSA':
+                                          '${hydrationViewModel.hydrationData?.tbsa.toStringAsFixed(2) ?? 'N/A'}',
+                                      'Sweat Rate':
+                                          '${hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
+                                      'Sweat Loss':
+                                          '${hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
+                                    }),
                                     const SizedBox(height: 20),
                                   ],
                                 );
@@ -127,7 +128,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                               return const SizedBox.shrink();
                             },
                           ),
-                          
+
                           const SizedBox(height: 8),
                           // Timestamp
                           const Text(
@@ -141,7 +142,8 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                           const SizedBox(height: 20),
                           // Sweat Loss Section
                           _buildCircularGauge(
-                            value: '-418.50ml',
+                            value:
+                                '${widget.hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
                             label: 'Sweat loss (Approx)',
                             icon: Icons.water_drop,
                             progress: 0.7, // 70% filled
@@ -149,7 +151,8 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                           const SizedBox(height: 20),
                           // Sweat Rate Section
                           _buildCircularGauge(
-                            value: '-416.55ml',
+                            value:
+                                '${widget.hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
                             label: 'Sweat Rate (Approx)',
                             icon: Icons.water,
                             progress: 0.65, // 65% filled
@@ -165,8 +168,8 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            '-648.67500000..',
+                          Text(
+                            '${widget.hydrationViewModel.sweatRateSummary[0].highLimit ?? 'N/A'} mL',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 24,
@@ -246,15 +249,15 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
       children: [
         // Circular Gauge
         SizedBox(
-          width: 200,
-          height: 200,
+          width: 150,
+          height: 150,
           child: Stack(
             alignment: Alignment.center,
             children: [
               // Background Circle
               Container(
-                width: 200,
-                height: 200,
+                width: 150,
+                height: 150,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 8),
@@ -262,8 +265,8 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
               ),
               // Progress Circle
               SizedBox(
-                width: 200,
-                height: 200,
+                width: 150,
+                height: 150,
                 child: CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 8,
