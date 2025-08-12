@@ -7,6 +7,7 @@ import 'home_screen.dart';
 import 'login_screen.dart';
 import 'test_summary_screen.dart';
 import '../services/user_service.dart';
+import '../services/image_upload_service.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -18,6 +19,12 @@ class TestScreen extends StatefulWidget {
 class _TestScreenState extends State<TestScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  
+  // Store uploaded image response
+  Map<String, dynamic>? _uploadedImageResponse;
+  
+  // Track submission state
+  bool _isSubmitting = false;
   
   // Form controllers for the 5 test parameters
   final TextEditingController _deviceTypeController = TextEditingController();
@@ -57,10 +64,10 @@ class _TestScreenState extends State<TestScreen> {
   // Helper method to check if all form fields are filled
   bool _areAllFieldsFilled() {
     return _deviceTypeController.text.trim().isNotEmpty &&
-           _heightController.text.trim().isNotEmpty &&
-           _sweatPositionController.text.trim().isNotEmpty &&
-           _timeTakenController.text.trim().isNotEmpty &&
-           _weightController.text.trim().isNotEmpty;
+         _heightController.text.trim().isNotEmpty &&
+         _sweatPositionController.text.trim().isNotEmpty &&
+         _timeTakenController.text.trim().isNotEmpty &&
+         _weightController.text.trim().isNotEmpty;
   }
 
   // Load user details and prefill height and weight fields
@@ -80,12 +87,90 @@ class _TestScreenState extends State<TestScreen> {
           }
         });
         
-        print('User details loaded and prefilled: height=${userDetails['height']}, weight=${userDetails['weight']}');
+        print(
+          'User details loaded and prefilled: height=${userDetails['height']}, weight=${userDetails['weight']}',
+        );
       } else {
         print('No user details found to prefill');
       }
     } catch (e) {
       print('Error loading user details: $e');
+    }
+  }
+
+  // Handle image upload and form submission
+  Future<void> _handleSubmit() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select an image first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Show loading state
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      // First upload the image
+      print('Starting image upload...');
+      final uploadResponse = await ImageUploadService.uploadImage(_selectedImage!);
+      
+      // Store the upload response
+      _uploadedImageResponse = uploadResponse;
+      
+      print('Image uploaded successfully: ${uploadResponse['response']['filename']}');
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Image uploaded: ${uploadResponse['response']['filename']}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Now collect test data with image path
+      final testData = {
+        "device_type": int.tryParse(_deviceTypeController.text) ?? 0,
+        "height": int.tryParse(_heightController.text) ?? 0,
+        "sweat_position": int.tryParse(_sweatPositionController.text) ?? 0,
+        "time_taken": int.tryParse(_timeTakenController.text) ?? 0,
+        "weight": int.tryParse(_weightController.text) ?? 0,
+        "image_path": uploadResponse['response']['filepath'], // Add image path from upload response
+      };
+
+      print('Test data with image path: $testData');
+      print('Image filepath: ${uploadResponse['response']['filepath']}');
+      
+      // Navigate to TestSummaryScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TestSummaryScreen(),
+        ),
+      );
+
+    } catch (e) {
+      print('Error during submit: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      // Reset loading state
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 
@@ -117,10 +202,10 @@ class _TestScreenState extends State<TestScreen> {
 
   @override
   Widget build(BuildContext context) {
-          return Scaffold(
-        backgroundColor: Colors.black,
-        resizeToAvoidBottomInset: true,
-        body: Stack(
+    return Scaffold(
+      backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: true,
+      body: Stack(
         children: [
           // Background Image
           Container(
@@ -187,20 +272,21 @@ class _TestScreenState extends State<TestScreen> {
                     ),
                   ),
                 ),
-                                  // Main Content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 24.0,
-                          right: 24.0,
-                          top: 24.0,
-                          bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
-                        ),
-                        child: Column(
+                // Main Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: 24.0,
+                        right: 24.0,
+                        top: 24.0,
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+                      ),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [                        // Headline Text
+                        children: [
+                          // Headline Text
                           const Text(
                             'Hydrate Smarter.\nPerform Better.',
                             style: TextStyle(
@@ -242,7 +328,7 @@ class _TestScreenState extends State<TestScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 ElevatedButton(
-                                  onPressed: _uploadPicture,
+                                  onPressed: _isSubmitting ? null : _uploadPicture,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF1E3A8A),
                                     padding: const EdgeInsets.symmetric(
@@ -258,7 +344,9 @@ class _TestScreenState extends State<TestScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    _selectedImage != null ? 'Change Picture' : 'Upload Picture',
+                                    _selectedImage != null
+                                        ? 'Change Picture'
+                                        : 'Upload Picture',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -268,32 +356,14 @@ class _TestScreenState extends State<TestScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 ElevatedButton(
-                                  onPressed: (_selectedImage != null && _areAllFieldsFilled()) ? () {
-                                    // Validate form and collect data
-                                    if (_formKey.currentState!.validate()) {
-                                      // Collect test data
-                                      final testData = {
-                                        "device_type": int.tryParse(_deviceTypeController.text) ?? 0,
-                                        "height": int.tryParse(_heightController.text) ?? 0,
-                                        "sweat_position": int.tryParse(_sweatPositionController.text) ?? 0,
-                                        "time_taken": int.tryParse(_timeTakenController.text) ?? 0,
-                                        "weight": int.tryParse(_weightController.text) ?? 0,
-                                      };
-                                      
-                                      print('Test data collected: $testData');
-                                      
-                                      // Navigate to TestSummaryScreen
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const TestSummaryScreen(),
-                                        ),
-                                      );
-                                    }
-                                  } : null,
+                                  onPressed: (_selectedImage != null && _areAllFieldsFilled() && !_isSubmitting)
+                                      ? _handleSubmit
+                                      : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: (_selectedImage != null && _areAllFieldsFilled())
-                                        ? const Color(0xFF059669) 
+                                    backgroundColor:
+                                        (_selectedImage != null &&
+                                            _areAllFieldsFilled() && !_isSubmitting)
+                                        ? const Color(0xFF059669)
                                         : Colors.grey,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 32,
@@ -302,7 +372,11 @@ class _TestScreenState extends State<TestScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                       side: BorderSide(
-                                        color: (_selectedImage != null && _areAllFieldsFilled()) ? Colors.white : Colors.grey,
+                                        color:
+                                            (_selectedImage != null &&
+                                                _areAllFieldsFilled() && !_isSubmitting)
+                                            ? Colors.white
+                                            : Colors.grey,
                                         width: 1,
                                       ),
                                     ),
@@ -326,57 +400,85 @@ class _TestScreenState extends State<TestScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                                                 Row(
-                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                   children: [
-                                     const Text(
-                                       'Test Parameters',
-                                       style: TextStyle(
-                                         color: Colors.white,
-                                         fontSize: 20,
-                                         fontWeight: FontWeight.bold,
-                                       ),
-                                     ),
-                                     IconButton(
-                                       onPressed: _loadUserDetails,
-                                       icon: const Icon(
-                                         Icons.refresh,
-                                         color: Colors.green,
-                                         size: 20,
-                                       ),
-                                       tooltip: 'Refresh profile data',
-                                     ),
-                                   ],
-                                 ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Test Parameters',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: _loadUserDetails,
+                                      icon: const Icon(
+                                        Icons.refresh,
+                                        color: Colors.green,
+                                        size: 20,
+                                      ),
+                                      tooltip: 'Refresh profile data',
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 8),
-                                                                 const Text(
-                                   'All fields are mandatory *',
-                                   style: TextStyle(
-                                     color: Colors.white70,
-                                     fontSize: 14,
-                                     fontStyle: FontStyle.italic,
-                                   ),
-                                 ),
-                                 const SizedBox(height: 4),
-                                 const Text(
-                                   'Height and Weight are prefilled from your profile',
-                                   style: TextStyle(
-                                     color: Colors.green,
-                                     fontSize: 12,
-                                     fontStyle: FontStyle.italic,
-                                   ),
-                                 ),
+                                const Text(
+                                  'All fields are mandatory *',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Height and Weight are prefilled from your profile',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
                                 const SizedBox(height: 20),
-                                _buildTestParameterField('Device Type', _deviceTypeController, 'Enter device type (0-9)', isNumber: true),
+                                _buildTestParameterField(
+                                  'Device Type',
+                                  _deviceTypeController,
+                                  'Enter device type (0-9)',
+                                  isNumber: true,
+                                ),
                                 const SizedBox(height: 20),
-                                                                 _buildTestParameterField('Height (from profile)', _heightController, 'Enter height in cm', isNumber: true),
-                                 const SizedBox(height: 20),
-                                 _buildTestParameterField('Sweat Position', _sweatPositionController, 'Enter sweat position (0-9)', isNumber: true),
-                                 const SizedBox(height: 20),
-                                 _buildTestParameterField('Time Taken', _timeTakenController, 'Enter time taken in minutes', isNumber: true),
-                                 const SizedBox(height: 20),
-                                 _buildTestParameterField('Weight (from profile)', _weightController, 'Enter weight in kg', isNumber: true),
-                                const SizedBox(height: 40), // Extra padding at bottom
+                                _buildTestParameterField(
+                                  'Height (from profile)',
+                                  _heightController,
+                                  'Enter height in cm',
+                                  isNumber: true,
+                                ),
+                                const SizedBox(height: 20),
+                                _buildTestParameterField(
+                                  'Sweat Position',
+                                  _sweatPositionController,
+                                  'Enter sweat position (0-9)',
+                                  isNumber: true,
+                                ),
+                                const SizedBox(height: 20),
+                                _buildTestParameterField(
+                                  'Time Taken',
+                                  _timeTakenController,
+                                  'Enter time taken in minutes',
+                                  isNumber: true,
+                                ),
+                                const SizedBox(height: 20),
+                                _buildTestParameterField(
+                                  'Weight (from profile)',
+                                  _weightController,
+                                  'Enter weight in kg',
+                                  isNumber: true,
+                                ),
+                                const SizedBox(
+                                  height: 40,
+                                ), // Extra padding at bottom
                               ],
                             ),
                           ),
@@ -389,155 +491,219 @@ class _TestScreenState extends State<TestScreen> {
                 Container(
                   width: double.infinity,
                   height: 80,
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      // Home
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
-                            );
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.home,
-                                color: Colors.grey,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Home',
-                                style: TextStyle(
+                  color: Colors.black,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        // Home
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.home,
                                   color: Colors.grey,
+                                  size: 24,
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Home',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Test
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.science,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Test',
+                                style: TextStyle(
+                                  color: Colors.white,
                                   fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      // Take a Test (Active)
-                      Expanded(
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            border: Border(
-                              top: BorderSide(color: Colors.blue, width: 3),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.send,
-                                color: Colors.blue,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Take a Test',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                        // Profile
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // History
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.history,
-                              color: Colors.grey,
-                              size: 24,
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'History',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // My Profile
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.grey,
-                              size: 24,
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'My Profile',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Logout
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                              (route) => false,
-                            );
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.logout,
-                                color: Colors.grey,
-                                size: 24,
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Logout',
-                                style: TextStyle(
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.person,
                                   color: Colors.grey,
-                                  fontSize: 12,
+                                  size: 24,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'My Profile',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                        // Logout
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.logout,
+                                  color: Colors.grey,
+                                  size: 24,
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Logout',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          
+          // Full-screen loader overlay during image upload
+          if (_isSubmitting) _buildUploadLoader(),
         ],
       ),
     );
   }
 
-  Widget _buildTestParameterField(String label, TextEditingController controller, String hint, {bool isNumber = false}) {
+  // Build upload loader overlay
+  Widget _buildUploadLoader() {
+    return Container(
+      color: Colors.black.withOpacity(0.8),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF059669)),
+                strokeWidth: 4,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Uploading Image...',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Please wait while we upload your image.\nThis may take a few moments.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Progress indicator with dots animation
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) {
+                  return AnimatedContainer(
+                    duration: Duration(milliseconds: 600),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(
+                        (DateTime.now().millisecondsSinceEpoch / 600 + index) % 2 == 0 
+                            ? 1.0 
+                            : 0.3
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTestParameterField(
+    String label,
+    TextEditingController controller,
+    String hint, {
+    bool isNumber = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
