@@ -28,9 +28,6 @@ class BannerViewModel extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Test the filtering logic first
-      testFiltering();
-
       final response = await _bannerService.getBannerImages();
 
       // Log all images received from API
@@ -102,26 +99,5 @@ class BannerViewModel extends ChangeNotifier {
     _currentIndex = 0;
     notifyListeners();
     await fetchBannerImages();
-  }
-
-  /// Test the filtering logic
-  void testFiltering() {
-    print('=== Testing Filtering Logic ===');
-    final testPaths = [
-      'assets/banners/1.jpg',
-      'assets/banners/2.jpg',
-      'assets/banners/banner1.png',
-      'assets/banners/banner2.png',
-      'assets/banners/3.jpg',
-    ];
-
-    final filtered = testPaths.where((path) {
-      final filename = path.split('/').last;
-      return filename.contains('banner');
-    }).toList();
-    print('Test paths: $testPaths');
-    print('Filtered result: $filtered');
-    print('Filtered count: ${filtered.length}');
-    print('=== End Test ===');
   }
 }

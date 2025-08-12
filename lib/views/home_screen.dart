@@ -1,10 +1,35 @@
-import 'package:FitApp/views/otp_screen.dart';
+import 'package:FitApp/views/IntroScreen.dart';
 import 'package:flutter/material.dart';
+import '../services/user_service.dart';
 
 import 'test_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Map<String, dynamic>? _userDetails;
+  String _username = 'User Name';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  Future<void> _loadUserDetails() async {
+    final userDetails = await UserService.getUserDetails();
+    if (userDetails != null) {
+      setState(() {
+        _userDetails = userDetails;
+        _username = userDetails['username'] ?? 'User Name';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +113,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'User Name',
+                      Text(
+                        _username,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 32,
@@ -314,11 +339,12 @@ class HomeScreen extends StatelessWidget {
               child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
+                await UserService.logout();
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const OTPScreen()),
+                  MaterialPageRoute(builder: (context) => const IntroScreen()),
                   (route) => false,
                 );
               },
