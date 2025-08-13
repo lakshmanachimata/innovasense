@@ -1,7 +1,7 @@
 class ImageConfig {
   // Configure your image URLs here
 
-  static const String localUrl = 'http://192.168.1.7:8500/assets/banners';
+  static const String localUrl = 'http://54.67.86.186:8500/assets/banners';
 
   // Option 1: Use placeholder images for testing (since local banners were deleted)
   static const String placeholderUrl = 'https://picsum.photos/800/400';
