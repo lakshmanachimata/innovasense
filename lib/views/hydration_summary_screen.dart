@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../viewmodels/hydration_viewmodel.dart';
 import '../models/user_history_model.dart';
-import 'home_screen.dart';
 
-class TestSummaryScreen extends StatefulWidget {
-  final HydrationViewModel hydrationViewModel;
-  const TestSummaryScreen({super.key, required this.hydrationViewModel});
+class HydrationSummaryScreen extends StatefulWidget {
+  final UserHistoryModel historyItem;
+  const HydrationSummaryScreen({super.key, required this.historyItem});
 
   @override
-  State<TestSummaryScreen> createState() => _TestSummaryScreenState();
+  State<HydrationSummaryScreen> createState() => _HydrationSummaryScreenState();
 }
 
-class _TestSummaryScreenState extends State<TestSummaryScreen> {
+class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,12 +44,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                         // Back Arrow
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
-                            );
+                            Navigator.pop(context);
                           },
                           child: const Icon(
                             Icons.arrow_back,
@@ -61,9 +52,9 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                             size: 24,
                           ),
                         ),
-                        // innovosens Text
+                        // Hydration Summary Text
                         const Text(
-                          'innovosens',
+                          'Hydration Summary',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -94,9 +85,9 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const SizedBox(height: 20),
-                          // Test Summary Header
+                          // Hydration Summary Header
                           const Text(
-                            'Test Summary',
+                            'Hydration Summary',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,
@@ -104,61 +95,93 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 30),
-
-                          // Hydration Data Cards (if available)
-                          Consumer<HydrationViewModel>(
-                            builder: (context, hydrationViewModel, child) {
-                              if (hydrationViewModel.hasData) {
-                                return Column(
-                                  children: [
-                                    // Basic Info Card
-                                    _buildInfoCard('Test Results', {
-                                      'BMI':
-                                          '${hydrationViewModel.hydrationData?.bmi.toStringAsFixed(2) ?? 'N/A'}',
-                                      'TBSA':
-                                          '${hydrationViewModel.hydrationData?.tbsa.toStringAsFixed(2) ?? 'N/A'}',
-                                      'Sweat Rate':
-                                          '${hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
-                                      'Sweat Loss':
-                                          '${hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
-                                    }),
-                                    const SizedBox(height: 20),
-                                  ],
-                                );
-                              }
-                              return const SizedBox.shrink();
+                          
+                          // Image Display
+                          if (widget.historyItem.imagePath.isNotEmpty)
+                            Container(
+                              width: 200,
+                              height: 200,
+                              margin: const EdgeInsets.only(bottom: 20),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  widget.historyItem.imagePath,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[800],
+                                      child: const Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.white,
+                                        size: 50,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          
+                          // Measurements Card
+                          _buildInfoCard(
+                            'Measurements',
+                            {
+                              'Test ID': widget.historyItem.id,
+                              'Device Type': widget.historyItem.deviceType,
+                              'Test Date': _formatDateTime(widget.historyItem.creationDatetime),
+                              'Weight': '${widget.historyItem.weight} kg',
+                              'Height': '${widget.historyItem.height} cm',
+                              'BMI': '${widget.historyItem.bmi.toStringAsFixed(2)}',
+                              'TBSA': '${widget.historyItem.tbsa.toStringAsFixed(2)}',
                             },
                           ),
-
+                          const SizedBox(height: 20),
+                          
+                          // Sweat Analysis Card
+                          _buildInfoCard(
+                            'Sweat Analysis',
+                            {
+                              'Sweat Position': widget.historyItem.sweatPosition,
+                              'Time Taken': '${widget.historyItem.timeTaken} min',
+                              'Sweat Rate': '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
+                              'Sweat Loss': '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          
                           const SizedBox(height: 8),
                           // Timestamp
-                          const Text(
-                            '2025-07-30 15:33:21',
-                            style: TextStyle(
+                          Text(
+                            _formatDateTime(widget.historyItem.creationDatetime),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
                           const SizedBox(height: 20),
+                          
                           // Sweat Loss Section
                           _buildCircularGauge(
-                            value:
-                                '${widget.hydrationViewModel.hydrationData?.sweatRate.toStringAsFixed(2) ?? 'N/A'} mL/m²/h',
+                            value: '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
                             label: 'Sweat loss (Approx)',
                             icon: Icons.water_drop,
-                            progress: 0.7, // 70% filled
+                            progress: _calculateSweatLossProgress(widget.historyItem.sweatLoss),
                           ),
                           const SizedBox(height: 20),
+                          
                           // Sweat Rate Section
                           _buildCircularGauge(
-                            value:
-                                '${widget.hydrationViewModel.hydrationData?.sweatLoss.toStringAsFixed(2) ?? 'N/A'} mL',
+                            value: '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
                             label: 'Sweat Rate (Approx)',
                             icon: Icons.water,
-                            progress: 0.65, // 65% filled
+                            progress: _calculateSweatRateProgress(widget.historyItem.sweatRate),
                           ),
                           const SizedBox(height: 20),
+                          
                           // Drink Water Section
                           const Text(
                             'Drink water:',
@@ -170,8 +193,8 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${widget.hydrationViewModel.sweatRateSummary[0].highLimit ?? 'N/A'} mL',
-                            style: TextStyle(
+                            '${_calculateRecommendedWaterIntake(widget.historyItem.sweatLoss)} mL',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -308,5 +331,34 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
         ),
       ],
     );
+  }
+
+  String _formatDateTime(String dateTimeString) {
+    try {
+      final dateTime = DateTime.parse(dateTimeString);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeString;
+    }
+  }
+
+  double _calculateSweatLossProgress(double sweatLoss) {
+    // Normalize sweat loss to a 0-1 range for progress indicator
+    // Assuming normal range is 0-2000 mL
+    const maxSweatLoss = 2000.0;
+    return (sweatLoss / maxSweatLoss).clamp(0.0, 1.0);
+  }
+
+  double _calculateSweatRateProgress(double sweatRate) {
+    // Normalize sweat rate to a 0-1 range for progress indicator
+    // Assuming normal range is 0-5000 mL/m²/h
+    const maxSweatRate = 5000.0;
+    return (sweatRate / maxSweatRate).clamp(0.0, 1.0);
+  }
+
+  double _calculateRecommendedWaterIntake(double sweatLoss) {
+    // Calculate recommended water intake based on sweat loss
+    // General recommendation: replace 1.5x the sweat loss
+    return (sweatLoss * 1.5).roundToDouble();
   }
 }

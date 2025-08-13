@@ -153,7 +153,7 @@ class _TestScreenState extends State<TestScreen> {
 
       // Construct the full image path using base URL and uploaded filepath
       final fullImagePath =
-          '${ApiConfig.baseUrl.replaceAll(':8500', ':8550')}/assets/innovo/${uploadResponse['response']['filename']}';
+          '${ApiConfig.baseUrl.replaceAll(':8500', ':8500')}/assets/innovo/${uploadResponse['response']['filename']}';
       print('Full image path for hydration API: $fullImagePath');
 
       // Call hydration API
