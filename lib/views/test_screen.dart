@@ -9,6 +9,8 @@ import '../services/hydration_service.dart';
 import '../services/image_upload_service.dart';
 import '../services/user_service.dart';
 import '../viewmodels/hydration_viewmodel.dart';
+import '../viewmodels/device_viewmodel.dart';
+import '../models/device_model.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'test_summary_screen.dart';
@@ -31,12 +33,14 @@ class _TestScreenState extends State<TestScreen> {
   bool _isSubmitting = false;
 
   // Form controllers for the 5 test parameters
-  final TextEditingController _deviceTypeController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _sweatPositionController =
       TextEditingController();
   final TextEditingController _timeTakenController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  
+  // Selected device ID for the dropdown
+  int? _selectedDeviceId;
 
   // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -46,7 +50,6 @@ class _TestScreenState extends State<TestScreen> {
     super.initState();
 
     // Add listeners to all text controllers to update UI when text changes
-    _deviceTypeController.addListener(() => setState(() {}));
     _heightController.addListener(() => setState(() {}));
     _sweatPositionController.addListener(() => setState(() {}));
     _timeTakenController.addListener(() => setState(() {}));
@@ -54,11 +57,15 @@ class _TestScreenState extends State<TestScreen> {
 
     // Load user details and prefill height and weight fields
     _loadUserDetails();
+    
+    // Fetch devices for the dropdown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DeviceViewModel>().fetchDevices();
+    });
   }
 
   @override
   void dispose() {
-    _deviceTypeController.dispose();
     _heightController.dispose();
     _sweatPositionController.dispose();
     _timeTakenController.dispose();
@@ -68,7 +75,7 @@ class _TestScreenState extends State<TestScreen> {
 
   // Helper method to check if all form fields are filled
   bool _areAllFieldsFilled() {
-    return _deviceTypeController.text.trim().isNotEmpty &&
+    return _selectedDeviceId != null &&
         _heightController.text.trim().isNotEmpty &&
         _sweatPositionController.text.trim().isNotEmpty &&
         _timeTakenController.text.trim().isNotEmpty &&
@@ -158,7 +165,7 @@ class _TestScreenState extends State<TestScreen> {
 
       // Call hydration API
       final hydrationResponse = await HydrationService.submitHydrationData(
-        deviceType: int.tryParse(_deviceTypeController.text) ?? 0,
+        deviceType: _selectedDeviceId ?? 1, // Use selected device ID or default to 1
         height: int.tryParse(_heightController.text) ?? 0,
         sweatPosition: int.tryParse(_sweatPositionController.text) ?? 0,
         timeTaken: int.tryParse(_timeTakenController.text) ?? 0,
@@ -488,12 +495,7 @@ class _TestScreenState extends State<TestScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                _buildTestParameterField(
-                                  'Device Type',
-                                  _deviceTypeController,
-                                  'Enter device type (0-9)',
-                                  isNumber: true,
-                                ),
+                                _buildDeviceTypeDropdown(),
                                 const SizedBox(height: 20),
                                 _buildTestParameterField(
                                   'Height (from profile)',
@@ -803,6 +805,148 @@ class _TestScreenState extends State<TestScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDeviceTypeDropdown() {
+    return Consumer<DeviceViewModel>(
+      builder: (context, deviceViewModel, child) {
+        if (deviceViewModel.isLoading) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Device Type',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    ' *',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+
+        if (deviceViewModel.error != null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Device Type',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    ' *',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'Error loading devices: ${deviceViewModel.error}',
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  'Device Type',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Text(
+                  ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.white, width: 1)),
+              ),
+              child: DropdownButtonFormField<int>(
+                value: _selectedDeviceId,
+                onChanged: (int? newValue) {
+                  setState(() {
+                    _selectedDeviceId = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Device Type is required';
+                  }
+                  return null;
+                },
+                dropdownColor: Colors.black,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                items: deviceViewModel.devices.map<DropdownMenuItem<int>>((DeviceModel device) {
+                  return DropdownMenuItem<int>(
+                    value: device.id,
+                    child: Text(
+                      device.deviceName,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  );
+                }).toList(),
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

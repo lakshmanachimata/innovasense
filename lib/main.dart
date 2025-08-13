@@ -7,6 +7,7 @@ import 'services/user_service.dart';
 import 'viewmodels/banner_viewmodel.dart';
 import 'viewmodels/hydration_viewmodel.dart';
 import 'viewmodels/user_history_viewmodel.dart';
+import 'viewmodels/device_viewmodel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BannerViewModel()),
         ChangeNotifierProvider(create: (_) => HydrationViewModel()),
         ChangeNotifierProvider(create: (_) => UserHistoryViewModel()),
+        ChangeNotifierProvider(create: (_) => DeviceViewModel()),
       ],
       child: MaterialApp(
         title: 'Fit Data App',
