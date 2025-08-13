@@ -1,10 +1,9 @@
-import 'package:FitApp/views/IntroScreen.dart';
 import 'package:flutter/material.dart';
-import '../services/user_service.dart';
 
-import 'test_screen.dart';
-import 'profile_screen.dart';
+import '../services/user_service.dart';
 import 'otp_screen.dart';
+import 'profile_screen.dart';
+import 'test_screen.dart';
 import 'user_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -38,14 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // Clear all SharedPreferences
       await UserService.logout();
-      
+
       // Navigate to OTPScreen and clear all previous routes
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) => const OTPScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const OTPScreen()),
           (route) => false, // This removes all previous routes
         );
       }
@@ -55,9 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) => const OTPScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const OTPScreen()),
           (route) => false,
         );
       }
@@ -215,7 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const UserHistoryScreen(),
+                                    builder: (context) =>
+                                        const UserHistoryScreen(),
                                   ),
                                 );
                               },
@@ -397,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 await UserService.logout();
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const IntroScreen()),
+                  MaterialPageRoute(builder: (context) => const OTPScreen()),
                   (route) => false,
                 );
               },
