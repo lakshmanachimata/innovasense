@@ -2,9 +2,11 @@ import 'package:FitApp/views/IntroScreen.dart';
 import 'package:FitApp/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'services/user_service.dart';
 import 'viewmodels/banner_viewmodel.dart';
 import 'viewmodels/hydration_viewmodel.dart';
-import 'services/user_service.dart';
+import 'viewmodels/user_history_viewmodel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +21,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => BannerViewModel()),
         ChangeNotifierProvider(create: (_) => HydrationViewModel()),
+        ChangeNotifierProvider(create: (_) => UserHistoryViewModel()),
       ],
       child: MaterialApp(
         title: 'Fit Data App',
@@ -49,7 +52,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _checkAuthStatus() async {
     final isLoggedIn = await UserService.isLoggedIn();
-    if (isLoggedIn && mounted) {
+    final jwtToken = await UserService.getJwtToken();
+    if (isLoggedIn && mounted && jwtToken != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );

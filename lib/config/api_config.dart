@@ -17,7 +17,7 @@ class ApiConfig {
   // Get the appropriate URL based on platform
   static String get baseUrl {
     // Using localhost for local testing
-    return 'http://192.168.1.5:8500';
+    return 'http://192.168.1.7:8500';
   }
 
   // Banner API endpoint
