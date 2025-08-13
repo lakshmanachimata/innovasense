@@ -241,6 +241,8 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                       controller: _userpinController,
                       label: 'UserPin',
                       hint: 'Enter your userpin',
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       enabled: !_isLoading,
                       isPassword: true,
                       validator: (value) {

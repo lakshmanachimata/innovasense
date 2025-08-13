@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/user_history_model.dart';
 import '../viewmodels/device_viewmodel.dart';
 
@@ -15,7 +16,7 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Fetch devices for the dropdown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DeviceViewModel>().fetchDevices();
@@ -107,7 +108,7 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 30),
-                          
+
                           // Image Display
                           if (widget.historyItem.imagePath.isNotEmpty)
                             Container(
@@ -116,7 +117,10 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                               margin: const EdgeInsets.only(bottom: 20),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
@@ -136,38 +140,42 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                                 ),
                               ),
                             ),
-                          
+
                           // Measurements Card
-                          _buildInfoCard(
-                            'Measurements',
-                            {
-                              'Test ID': widget.historyItem.id,
-                              'Device Type': _getDeviceName(widget.historyItem.deviceType),
-                              'Test Date': _formatDateTime(widget.historyItem.creationDatetime),
-                              'Weight': '${widget.historyItem.weight} kg',
-                              'Height': '${widget.historyItem.height} cm',
-                              'BMI': '${widget.historyItem.bmi.toStringAsFixed(2)}',
-                              'TBSA': '${widget.historyItem.tbsa.toStringAsFixed(2)}',
-                            },
-                          ),
+                          _buildInfoCard('Measurements', {
+                            'Test ID': widget.historyItem.id,
+                            'Device Type': _getDeviceName(
+                              widget.historyItem.deviceType,
+                            ),
+                            'Test Date': _formatDateTime(
+                              widget.historyItem.creationDatetime,
+                            ),
+                            'Weight': '${widget.historyItem.weight} kg',
+                            'Height': '${widget.historyItem.height} cm',
+                            'BMI':
+                                '${widget.historyItem.bmi.toStringAsFixed(2)}',
+                            'TBSA':
+                                '${widget.historyItem.tbsa.toStringAsFixed(2)}',
+                          }),
                           const SizedBox(height: 20),
-                          
+
                           // Sweat Analysis Card
-                          _buildInfoCard(
-                            'Sweat Analysis',
-                            {
-                              'Sweat Position': widget.historyItem.sweatPosition,
-                              'Time Taken': '${widget.historyItem.timeTaken} min',
-                              'Sweat Rate': '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
-                              'Sweat Loss': '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
-                            },
-                          ),
+                          _buildInfoCard('Sweat Analysis', {
+                            'Sweat Position': widget.historyItem.sweatPosition,
+                            'Time Taken': '${widget.historyItem.timeTaken} min',
+                            'Sweat Rate':
+                                '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
+                            'Sweat Loss':
+                                '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
+                          }),
                           const SizedBox(height: 20),
-                          
+
                           const SizedBox(height: 8),
                           // Timestamp
                           Text(
-                            _formatDateTime(widget.historyItem.creationDatetime),
+                            _formatDateTime(
+                              widget.historyItem.creationDatetime,
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -175,25 +183,31 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Sweat Loss Section
                           _buildCircularGauge(
-                            value: '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
+                            value:
+                                '${widget.historyItem.sweatLoss.toStringAsFixed(2)} mL',
                             label: 'Sweat loss (Approx)',
                             icon: Icons.water_drop,
-                            progress: _calculateSweatLossProgress(widget.historyItem.sweatLoss),
+                            progress: _calculateSweatLossProgress(
+                              widget.historyItem.sweatLoss,
+                            ),
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Sweat Rate Section
                           _buildCircularGauge(
-                            value: '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
+                            value:
+                                '${widget.historyItem.sweatRate.toStringAsFixed(2)} mL/m²/h',
                             label: 'Sweat Rate (Approx)',
                             icon: Icons.water,
-                            progress: _calculateSweatRateProgress(widget.historyItem.sweatRate),
+                            progress: _calculateSweatRateProgress(
+                              widget.historyItem.sweatRate,
+                            ),
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Drink Water Section
                           const Text(
                             'Drink water:',
@@ -323,7 +337,7 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                   value,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -337,7 +351,7 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
         ),

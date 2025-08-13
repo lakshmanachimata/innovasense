@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/hydration_viewmodel.dart';
-import '../models/user_history_model.dart';
 import 'home_screen.dart';
 
 class TestSummaryScreen extends StatefulWidget {
@@ -288,7 +287,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                   value,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -302,7 +301,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
         ),

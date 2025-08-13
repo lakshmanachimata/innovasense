@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../services/image_url_service.dart';
@@ -411,6 +412,10 @@ class _OTPScreenState extends State<OTPScreen> {
                                   controller: _cnumberController,
                                   enabled: !_isLoading,
                                   style: TextStyle(color: Colors.white),
+                                  keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
                                       return 'CNumber is required';
@@ -448,6 +453,10 @@ class _OTPScreenState extends State<OTPScreen> {
                                   controller: _userpinController,
                                   enabled: !_isLoading,
                                   obscureText: true,
+                                  keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
                                   style: TextStyle(color: Colors.white),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
