@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import 'user_service.dart';
-import 'encrypt_decrypt_service.dart';
 
 class HydrationService {
   static Future<Map<String, dynamic>> submitHydrationData({
@@ -38,7 +37,7 @@ class HydrationService {
         "sweat_position": sweatPosition,
         "time_taken": timeTaken,
         "userid": userDetails['id'] ?? 0,
-        "username": EncryptDecryptService().getDecryptData(userDetails['username'] ?? ''),
+        "username": userDetails['username'] ?? '',
         "weight": weight,
       };
 

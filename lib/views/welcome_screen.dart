@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../services/image_url_service.dart';
 import '../viewmodels/banner_viewmodel.dart';
 import '../widgets/webview_popup.dart';
+import '../widgets/pdf_viewer_popup.dart';
 import 'account_setup_screen.dart';
 import 'otp_screen.dart';
 
@@ -406,7 +407,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Bottom Navigation Buttons
+                                                    // Bottom Navigation Buttons - Row 1: FAQs and Privacy
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
@@ -498,6 +499,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          // Bottom Navigation Buttons - Row 2: Terms and Citation
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
                               // Terms Button
                               GestureDetector(
                                 onTap: () {
@@ -532,6 +540,50 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                       const SizedBox(width: 6),
                                       const Text(
                                         'Terms',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Citation Button
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const PDFViewerPopup(
+                                      pdfPath: 'assets/pdf/Hydrosense.pdf',
+                                      title: 'Hydrosense Research & Citations',
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.science_outlined,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'Citation',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
