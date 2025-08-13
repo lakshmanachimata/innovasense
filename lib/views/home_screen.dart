@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/user_service.dart';
+import '../services/encrypt_decrypt_service.dart';
 import 'otp_screen.dart';
 import 'profile_screen.dart';
 import 'test_screen.dart';
@@ -28,7 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (userDetails != null) {
       setState(() {
         _userDetails = userDetails;
-        _username = userDetails['username'] ?? 'User Name';
+        final decryptedUsername = EncryptDecryptService().getDecryptData(userDetails['username'] ?? '');
+        _username = decryptedUsername.isNotEmpty ? decryptedUsername : 'User Name';
       });
     }
   }

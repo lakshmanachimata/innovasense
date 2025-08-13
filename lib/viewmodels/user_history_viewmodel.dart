@@ -26,7 +26,13 @@ class UserHistoryViewModel extends ChangeNotifier {
       if (response.code == 0) {
         _userHistory = response.response;
         _hasData = _userHistory.isNotEmpty;
-        print('User history loaded: ${_userHistory.length} records');
+        
+        if (_userHistory.isEmpty) {
+          print('User history loaded: 0 records (empty history)');
+          _error = 'No history records found for this user';
+        } else {
+          print('User history loaded: ${_userHistory.length} records');
+        }
       } else {
         _error = response.message;
         _hasData = false;

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/user_history_model.dart';
 import 'user_service.dart';
+import 'encrypt_decrypt_service.dart';
 
 class UserHistoryService {
   static Future<UserHistoryResponse> getUserHistory() async {
@@ -21,7 +22,7 @@ class UserHistoryService {
       // Prepare the request payload
       final payload = {
         'cnumber': userDetails['cnumber'] ?? '',
-        'username': userDetails['username'] ?? '',
+        'username': EncryptDecryptService().getDecryptData(userDetails['username'] ?? ''),
       };
 
       print('User History API payload: $payload');
@@ -43,6 +44,10 @@ class UserHistoryService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+        print('Raw API response data: $responseData');
+        print('Response type: ${responseData.runtimeType}');
+        print('Response field type: ${responseData['response']?.runtimeType}');
+        
         final userHistoryResponse = UserHistoryResponse.fromJson(responseData);
         
         if (userHistoryResponse.code == 0) {

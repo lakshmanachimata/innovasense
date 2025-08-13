@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../services/image_url_service.dart';
 import '../viewmodels/banner_viewmodel.dart';
+import '../widgets/webview_popup.dart';
 import 'account_setup_screen.dart';
 import 'otp_screen.dart';
 
@@ -410,102 +411,135 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               // FAQs Button
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 1,
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const WebViewPopup(
+                                      url: 'https://api.innovosens.com/faq.html',
+                                      title: 'Frequently Asked Questions',
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.chat_bubble_outline,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
                                       color: Colors.white,
-                                      size: 14,
+                                      width: 1,
                                     ),
-                                    const SizedBox(width: 6),
-                                    const Text(
-                                      'FAQs',
-                                      style: TextStyle(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.chat_bubble_outline,
                                         color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                        size: 14,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'FAQs',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               // Privacy Button
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 1,
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const WebViewPopup(
+                                      url: 'https://api.innovosens.com/privacy.html',
+                                      title: 'Privacy Policy',
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.shopping_bag_outlined,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
                                       color: Colors.white,
-                                      size: 14,
+                                      width: 1,
                                     ),
-                                    const SizedBox(width: 6),
-                                    const Text(
-                                      'Privacy',
-                                      style: TextStyle(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.privacy_tip_outlined,
                                         color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                        size: 14,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'Privacy',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                               // Terms Button
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 1,
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const WebViewPopup(
+                                      url: 'https://api.innovosens.com/terms.html',
+                                      title: 'Terms & Conditions',
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.description_outlined,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
                                       color: Colors.white,
-                                      size: 14,
+                                      width: 1,
                                     ),
-                                    const SizedBox(width: 6),
-                                    const Text(
-                                      'Terms',
-                                      style: TextStyle(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.description_outlined,
                                         color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                        size: 14,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'Terms',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../models/user_model.dart';
+
 import '../config/api_config.dart';
+import '../models/user_model.dart';
 import '../services/encrypt_decrypt_service.dart';
 import 'otp_screen.dart';
 
@@ -49,14 +51,21 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
     try {
       // Initialize encryption service
       final encryptService = EncryptDecryptService();
-      
+
       // Encrypt sensitive data
-      final encryptedCNumber = encryptService.getEncryptData(_cnumberController.text.trim());
-      final encryptedUserPin = encryptService.getEncryptData(_userpinController.text);
-      
+      final encryptedCNumber = encryptService.getEncryptData(
+        _cnumberController.text.trim(),
+      );
+      final encryptedUserPin = encryptService.getEncryptData(
+        _userpinController.text,
+      );
+      final encryptedName = encryptService.getEncryptData(
+        _usernameController.text,
+      );
+
       // Prepare user data
       final userData = UserModel(
-        username: _usernameController.text.trim(),
+        username: encryptedName,
         cnumber: encryptedCNumber,
         userpin: encryptedUserPin,
         age: int.parse(_ageController.text.trim()),
@@ -72,59 +81,62 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
       print('Encrypted UserPin: "$encryptedUserPin"');
       print('API URL: ${ApiConfig.baseUrl}/Services/innovoregister');
 
-      final response = await http.post(
-         Uri.parse('${ApiConfig.baseUrl}/Services/innovoregister'),
-         headers: {
-           'accept': 'application/json',
-           'Content-Type': 'application/json',
-         },
-         body: jsonEncode(userData.toJson()),
-       ).timeout(
-         const Duration(seconds: 10),
-         onTimeout: () {
-           throw Exception('Request timeout. Please check your connection.');
-         },
-       );
+      final response = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/Services/innovoregister'),
+            headers: {
+              'accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(userData.toJson()),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('Request timeout. Please check your connection.');
+            },
+          );
 
       print('API Response Status: ${response.statusCode}');
       print('API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-         print('Account created successfully!');
-         
-         // Show success snackbar
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-             content: Text('Account created successfully!'),
-             backgroundColor: Colors.green,
-             duration: Duration(seconds: 2),
-           ),
-         );
+        print('Account created successfully!');
 
-         // Navigate to OTP screen (login screen)
-         Navigator.pushReplacement(
-           context,
-           MaterialPageRoute(builder: (context) => const OTPScreen()),
-         );
-       } else {
-         final errorResponse = jsonDecode(response.body);
-         final error = errorResponse['message'] ?? 'Unknown error occurred';
-         throw Exception('Failed to create account: $error');
-       }
+        // Show success snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Navigate to OTP screen (login screen)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OTPScreen()),
+        );
+      } else {
+        final errorResponse = jsonDecode(response.body);
+        final error = errorResponse['message'] ?? 'Unknown error occurred';
+        throw Exception('Failed to create account: $error');
+      }
     } catch (e) {
       print('Error creating account: $e');
-      
+
       // Show error message
       String errorMessage = 'Error creating account';
-      
+
       if (e.toString().contains('timeout')) {
         errorMessage = 'Request timeout. Please check your connection.';
       } else if (e.toString().contains('Failed to create account')) {
         errorMessage = e.toString().replaceAll('Exception: ', '');
       } else if (e.toString().contains('SocketException')) {
-        errorMessage = 'Connection failed. Please check your internet connection.';
+        errorMessage =
+            'Connection failed. Please check your internet connection.';
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -277,21 +289,21 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child:                             _buildGenderOption(
-                              value: 'Male',
-                              label: 'Male',
-                              icon: Icons.male,
-                              enabled: !_isLoading,
-                            ),
+                              child: _buildGenderOption(
+                                value: 'Male',
+                                label: 'Male',
+                                icon: Icons.male,
+                                enabled: !_isLoading,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child:                             _buildGenderOption(
-                              value: 'Female',
-                              label: 'Female',
-                              icon: Icons.female,
-                              enabled: !_isLoading,
-                            ),
+                              child: _buildGenderOption(
+                                value: 'Female',
+                                label: 'Female',
+                                icon: Icons.female,
+                                enabled: !_isLoading,
+                              ),
                             ),
                           ],
                         ),
@@ -305,16 +317,22 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                       label: 'Height (cm)',
                       hint: 'Enter your height in cm (e.g., 170.5)',
                       enabled: !_isLoading,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Height is required';
                         }
                         final height = double.tryParse(value.trim());
-                        if (height == null || height < 100.0 || height > 250.0) {
+                        if (height == null ||
+                            height < 100.0 ||
+                            height > 250.0) {
                           return 'Please enter a valid height (100.0-250.0 cm)';
                         }
                         return null;
@@ -482,23 +500,27 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   }) {
     final isSelected = _selectedGender == value;
     return GestureDetector(
-      onTap: enabled ? () {
-        setState(() {
-          _selectedGender = value;
-        });
-      } : null,
+      onTap: enabled
+          ? () {
+              setState(() {
+                _selectedGender = value;
+              });
+            }
+          : null,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: enabled 
+            color: enabled
                 ? (isSelected ? Colors.white : Colors.white.withOpacity(0.5))
                 : Colors.white.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: enabled 
-              ? (isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent)
+          color: enabled
+              ? (isSelected
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.transparent)
               : Colors.white.withOpacity(0.05),
         ),
         child: Row(
@@ -506,7 +528,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
           children: [
             Icon(
               icon,
-              color: enabled 
+              color: enabled
                   ? (isSelected ? Colors.white : Colors.white.withOpacity(0.7))
                   : Colors.white.withOpacity(0.4),
               size: 20,
@@ -517,8 +539,8 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
               style: TextStyle(
                 color: enabled
                     ? (isSelected
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.7))
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.7))
                     : Colors.white.withOpacity(0.4),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

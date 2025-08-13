@@ -87,13 +87,34 @@ class UserHistoryResponse {
   });
 
   factory UserHistoryResponse.fromJson(Map<String, dynamic> json) {
+    List<UserHistoryModel> historyList = [];
+    
+    // Handle different response types gracefully
+    if (json['response'] != null) {
+      if (json['response'] is List) {
+        // Normal case: response is a list
+        historyList = (json['response'] as List)
+            .map((item) => UserHistoryModel.fromJson(item))
+            .toList();
+      } else if (json['response'] is int) {
+        // API returned count instead of list - create empty list
+        print('API returned count: ${json['response']}, creating empty history list');
+        historyList = [];
+      } else if (json['response'] is Map) {
+        // API returned single object - wrap in list
+        print('API returned single object, wrapping in list');
+        historyList = [UserHistoryModel.fromJson(json['response'])];
+      } else {
+        // Unknown type - log and create empty list
+        print('Unknown response type: ${json['response'].runtimeType}, creating empty history list');
+        historyList = [];
+      }
+    }
+    
     return UserHistoryResponse(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
-      response: (json['response'] as List?)
-              ?.map((item) => UserHistoryModel.fromJson(item))
-              .toList() ??
-          [],
+      response: historyList,
     );
   }
 
