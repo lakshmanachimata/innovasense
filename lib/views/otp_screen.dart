@@ -453,9 +453,6 @@ class _OTPScreenState extends State<OTPScreen> {
                                     if (value == null || value.isEmpty) {
                                       return 'UserPin is required';
                                     }
-                                    if (value.length < 6) {
-                                      return 'UserPin must be at least 6 characters';
-                                    }
                                     return null;
                                   },
                                   decoration: InputDecoration(

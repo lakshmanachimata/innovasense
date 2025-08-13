@@ -235,9 +235,6 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                         if (value == null || value.isEmpty) {
                           return 'UserPin is required';
                         }
-                        if (value.length < 6) {
-                          return 'UserPin must be at least 6 characters';
-                        }
                         return null;
                       },
                     ),
