@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user_history_model.dart';
+import '../viewmodels/device_viewmodel.dart';
 
 class HydrationSummaryScreen extends StatefulWidget {
   final UserHistoryModel historyItem;
@@ -10,6 +12,16 @@ class HydrationSummaryScreen extends StatefulWidget {
 }
 
 class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    
+    // Fetch devices for the dropdown
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DeviceViewModel>().fetchDevices();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,7 +142,7 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
                             'Measurements',
                             {
                               'Test ID': widget.historyItem.id,
-                              'Device Type': widget.historyItem.deviceType,
+                              'Device Type': _getDeviceName(widget.historyItem.deviceType),
                               'Test Date': _formatDateTime(widget.historyItem.creationDatetime),
                               'Weight': '${widget.historyItem.weight} kg',
                               'Height': '${widget.historyItem.height} cm',
@@ -360,5 +372,15 @@ class _HydrationSummaryScreenState extends State<HydrationSummaryScreen> {
     // Calculate recommended water intake based on sweat loss
     // General recommendation: replace 1.5x the sweat loss
     return (sweatLoss * 1.5).roundToDouble();
+  }
+
+  String _getDeviceName(int deviceId) {
+    try {
+      final deviceViewModel = context.read<DeviceViewModel>();
+      final device = deviceViewModel.getDeviceById(deviceId);
+      return device?.deviceName ?? 'Device ID: $deviceId';
+    } catch (e) {
+      return 'Device ID: $deviceId';
+    }
   }
 }
