@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/encrypt_decrypt_service.dart';
 import '../services/user_service.dart';
 import 'home_screen.dart';
 
@@ -178,7 +179,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileTable() {
     final profileData = [
-      {'Name': 'Username', 'Value': _userDetails!['username'] ?? 'N/A'},
+      {
+        'Name': 'Username',
+        'Value':
+            EncryptDecryptService().getDecryptData(_userDetails!['username']) ??
+            'N/A',
+      },
       {'Name': 'Age', 'Value': '${_userDetails!['age'] ?? 'N/A'} years'},
       {'Name': 'Gender', 'Value': _userDetails!['gender'] ?? 'N/A'},
       {'Name': 'Height', 'Value': '${_userDetails!['height'] ?? 'N/A'} cm'},
