@@ -6,7 +6,7 @@ class ApiConfig {
 
   // For physical device (use your machine's actual IP address)
   static const String physicalDeviceUrl =
-      'http://192.168.1.5:8500'; // Updated to your actual IP
+      'http://192.168.1.7:8500'; // Updated to your actual IP
 
   // For iOS Simulator
   static const String iosSimulatorUrl = 'http://localhost:8500';
