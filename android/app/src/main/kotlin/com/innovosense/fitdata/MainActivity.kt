@@ -1,4 +1,4 @@
-package com.innovosense.fitdata
+package com.app.hydrosens
 
 import io.flutter.embedding.android.FlutterActivity
 
