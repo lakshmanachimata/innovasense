@@ -312,7 +312,7 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                             ),
                           ),
                           Expanded(
-                            flex: 2,
+                            flex: 3,
                             child: Text(
                               'Sweat Rate',
                               style: TextStyle(
@@ -323,7 +323,7 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                             ),
                           ),
                           Expanded(
-                            flex: 2,
+                            flex: 3,
                             child: Text(
                               'Sweat Loss',
                               style: TextStyle(
@@ -337,82 +337,81 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                       ),
                     ),
 
-                                         // Table Rows
-                     ...latestHistory.map(
-                       (history) => GestureDetector(
-                         onTap: () {
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder: (context) => HydrationSummaryScreen(
-                                 historyItem: history,
-                               ),
-                             ),
-                           );
-                         },
-                         child: Container(
-                           decoration: BoxDecoration(
-                             border: Border(
-                               bottom: BorderSide(
-                                 color: Colors.white.withOpacity(0.1),
-                                 width: 1,
-                               ),
-                             ),
-                           ),
-                           child: Padding(
-                             padding: const EdgeInsets.all(16),
-                             child: Row(
-                               children: [
-                                 Expanded(
-                                   flex: 2,
-                                   child: Text(
-                                     _formatDateTime(history.creationDatetime),
-                                     style: const TextStyle(
-                                       color: Colors.white,
-                                       fontSize: 12,
-                                       fontWeight: FontWeight.w500,
-                                     ),
-                                   ),
-                                 ),
-                                 Expanded(
-                                   flex: 2,
-                                   child: Text(
-                                     history.bmi.toStringAsFixed(2),
-                                     style: const TextStyle(
-                                       color: Colors.white,
-                                       fontSize: 12,
-                                       fontWeight: FontWeight.w600,
-                                     ),
-                                   ),
-                                 ),
-                                 Expanded(
-                                   flex: 2,
-                                   child: Text(
-                                     '${history.sweatRate.toStringAsFixed(0)} mL/m²/h',
-                                     style: const TextStyle(
-                                       color: Colors.white,
-                                       fontSize: 12,
-                                       fontWeight: FontWeight.w600,
-                                     ),
-                                   ),
-                                 ),
-                                 Expanded(
-                                   flex: 2,
-                                   child: Text(
-                                     '${history.sweatLoss.toStringAsFixed(0)} mL',
-                                     style: const TextStyle(
-                                       color: Colors.white,
-                                       fontSize: 12,
-                                       fontWeight: FontWeight.w600,
-                                     ),
-                                   ),
-                                 ),
-                               ],
-                             ),
-                           ),
-                         ),
-                       ),
-                     ),
+                    // Table Rows
+                    ...latestHistory.map(
+                      (history) => GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  HydrationSummaryScreen(historyItem: history),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.white.withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    _formatDateTime(history.creationDatetime),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Text(
+                                    history.bmi.toStringAsFixed(2),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    '${history.sweatRate.toStringAsFixed(0)} mL/m²/h',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    '${history.sweatLoss.toStringAsFixed(0)} mL',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

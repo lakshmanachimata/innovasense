@@ -1,4 +1,4 @@
-package com.example.fit_data.app
+package com.innovosense.fitdata
 
 import io.flutter.embedding.android.FlutterActivity
 
