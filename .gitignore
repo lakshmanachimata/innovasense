@@ -28,7 +28,7 @@
 /packages/flutter/coverage/
 version
 analysis_benchmark.json
-
+*.DS_Store
 # packages file containing multi-root paths
 .packages.generated
 
