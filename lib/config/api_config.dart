@@ -22,7 +22,6 @@ class ApiConfig {
 
   // Banner API endpoint
   static String get bannerEndpoint => '$baseUrl/Services/getBannerImages';
-  
+
   // Auth token for protected endpoints
-  static const String authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjX251bWJlciI6IjEyMzQ1Njc4OTAiLCJ1c2VybmFtZSI6IkpvaG4gRG9lIiwiZXhwIjoxNzU5NzQ3MDc3LCJuYmYiOjE3NTcxNTUwNzcsImlhdCI6MTc1NzE1NTA3N30.bw9LCLHkdN7OGh5Wwb-leQldkdR3B0MleItrTgKrUDs';
 }
