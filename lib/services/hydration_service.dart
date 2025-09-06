@@ -12,6 +12,7 @@ class HydrationService {
     required int sweatPosition,
     required int timeTaken,
     required int weight,
+    required int imageId,
     required String imagePath,
   }) async {
     try {
@@ -32,7 +33,7 @@ class HydrationService {
         "cnumber": userDetails['cnumber'] ?? '',
         "device_type": deviceType,
         "height": height,
-        "image_id": 0,
+        "image_id": imageId,
         "image_path": imagePath,
         "sweat_position": sweatPosition,
         "time_taken": timeTaken,

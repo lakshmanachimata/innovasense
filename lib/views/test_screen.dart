@@ -6,13 +6,16 @@ import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
 import '../models/device_model.dart';
+import '../models/sweat_image_model.dart';
 import '../services/hydration_service.dart';
 import '../services/image_upload_service.dart';
+import '../services/sweat_images_service.dart';
 import '../services/user_service.dart';
 import '../viewmodels/device_viewmodel.dart';
 import '../viewmodels/hydration_viewmodel.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+import 'sweat_image_selection_screen.dart';
 import 'test_summary_screen.dart';
 
 class TestScreen extends StatefulWidget {
@@ -41,6 +44,13 @@ class _TestScreenState extends State<TestScreen> {
 
   // Selected device ID for the dropdown
   int? _selectedDeviceId;
+
+  int? imageId;
+
+  // Sweat images state
+  List<SweatImageModel> _sweatImages = [];
+  bool _isLoadingSweatImages = false;
+  String? _sweatImagesError;
 
   // Form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -75,11 +85,111 @@ class _TestScreenState extends State<TestScreen> {
 
   // Helper method to check if all form fields are filled
   bool _areAllFieldsFilled() {
-    return _selectedDeviceId != null &&
+    bool basicFieldsFilled =
+        _selectedDeviceId != null &&
         _heightController.text.trim().isNotEmpty &&
         _sweatPositionController.text.trim().isNotEmpty &&
         _timeTakenController.text.trim().isNotEmpty &&
         _weightController.text.trim().isNotEmpty;
+
+    // For pro devices, sweat image selection is mandatory
+    if (_selectedDeviceId != null) {
+      final deviceViewModel = Provider.of<DeviceViewModel>(
+        context,
+        listen: false,
+      );
+      final selectedDevice = deviceViewModel.devices.firstWhere(
+        (device) => device.id == _selectedDeviceId,
+        orElse: () => DeviceModel(id: 0, deviceName: '', deviceText: ''),
+      );
+
+      if (selectedDevice.deviceName.toLowerCase().contains('pro')) {
+        return basicFieldsFilled && imageId != null && imageId != 0;
+      }
+    }
+
+    return basicFieldsFilled;
+  }
+
+  // Helper method to check if sweat image selection is required and completed
+  bool _isSweatImageSelectionValid() {
+    if (_selectedDeviceId == null) return true; // No device selected yet
+
+    final deviceViewModel = Provider.of<DeviceViewModel>(
+      context,
+      listen: false,
+    );
+    final selectedDevice = deviceViewModel.devices.firstWhere(
+      (device) => device.id == _selectedDeviceId,
+      orElse: () => DeviceModel(id: 0, deviceName: '', deviceText: ''),
+    );
+
+    // For pro devices, sweat image selection is mandatory
+    if (selectedDevice.deviceName.toLowerCase().contains('pro')) {
+      return imageId != null && imageId != 0;
+    }
+
+    return true; // Not a pro device, no sweat image required
+  }
+
+  // Navigate to sweat image selection screen
+  Future<void> _showSweatImageSelection() async {
+    if (_sweatImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No sweat images available'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SweatImageSelectionScreen(
+          sweatImages: _sweatImages,
+          selectedImageId: imageId,
+          onImageSelected: (selectedId) {
+            setState(() {
+              imageId = selectedId;
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  // Fetch sweat images for pro/pro plus devices
+  Future<void> _fetchSweatImages() async {
+    try {
+      setState(() {
+        _isLoadingSweatImages = true;
+        _sweatImagesError = null;
+      });
+
+      // Get user details for API call
+      final userDetails = await UserService.getUserDetails();
+      if (userDetails == null) {
+        throw Exception('User details not found');
+      }
+
+      final sweatImages = await SweatImagesService.getSweatImages(
+        cnumber: userDetails['cnumber'] ?? '1234567890',
+        username: userDetails['username'] ?? 'John Doe',
+      );
+
+      setState(() {
+        _sweatImages = sweatImages;
+        _isLoadingSweatImages = false;
+      });
+    } catch (e) {
+      setState(() {
+        _sweatImagesError = e.toString();
+        _isLoadingSweatImages = false;
+      });
+      print('Error fetching sweat images: $e');
+    }
   }
 
   // Load user details and prefill height and weight fields
@@ -120,6 +230,17 @@ class _TestScreenState extends State<TestScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an image first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Check if sweat image selection is required and completed
+    if (!_isSweatImageSelectionValid()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a sweat level for Pro devices'),
           backgroundColor: Colors.red,
         ),
       );
@@ -171,6 +292,7 @@ class _TestScreenState extends State<TestScreen> {
         sweatPosition: int.tryParse(_sweatPositionController.text) ?? 0,
         timeTaken: int.tryParse(_timeTakenController.text) ?? 0,
         weight: int.tryParse(_weightController.text) ?? 0,
+        imageId: imageId ?? 0,
         imagePath: fullImagePath,
       );
 
@@ -498,6 +620,8 @@ class _TestScreenState extends State<TestScreen> {
                                 const SizedBox(height: 20),
                                 _buildDeviceTypeDropdown(),
                                 const SizedBox(height: 20),
+                                _buildSweatImageSelection(),
+                                const SizedBox(height: 20),
                                 _buildTestParameterField(
                                   'Height (from profile)',
                                   _heightController,
@@ -508,7 +632,7 @@ class _TestScreenState extends State<TestScreen> {
                                 _buildTestParameterField(
                                   'Sweat Position',
                                   _sweatPositionController,
-                                  'Enter sweat position (0-9)',
+                                  'Enter sweat position (1-9)',
                                   isNumber: true,
                                 ),
                                 const SizedBox(height: 20),
@@ -918,10 +1042,35 @@ class _TestScreenState extends State<TestScreen> {
               ),
               child: DropdownButtonFormField<int>(
                 value: _selectedDeviceId,
-                onChanged: (int? newValue) {
+                onChanged: (int? newValue) async {
                   setState(() {
                     _selectedDeviceId = newValue;
+                    imageId = 0; // Reset imageId when device changes
                   });
+
+                  // Check if the selected device is pro/pro plus
+                  if (newValue != null) {
+                    final deviceViewModel = Provider.of<DeviceViewModel>(
+                      context,
+                      listen: false,
+                    );
+                    final selectedDevice = deviceViewModel.devices.firstWhere(
+                      (device) => device.id == newValue,
+                      orElse: () =>
+                          DeviceModel(id: 0, deviceName: '', deviceText: ''),
+                    );
+
+                    if (selectedDevice.deviceName.toLowerCase().contains(
+                      'pro',
+                    )) {
+                      // Fetch sweat images for pro devices
+                      await _fetchSweatImages();
+                      // Show selection dialog after images are loaded
+                      if (_sweatImages.isNotEmpty) {
+                        await _showSweatImageSelection();
+                      }
+                    }
+                  }
                 },
                 validator: (value) {
                   if (value == null) {
@@ -979,6 +1128,126 @@ class _TestScreenState extends State<TestScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSweatImageSelection() {
+    // Only show for pro devices
+    if (_selectedDeviceId == null) return const SizedBox.shrink();
+
+    final deviceViewModel = Provider.of<DeviceViewModel>(
+      context,
+      listen: false,
+    );
+    final selectedDevice = deviceViewModel.devices.firstWhere(
+      (device) => device.id == _selectedDeviceId,
+      orElse: () => DeviceModel(id: 0, deviceName: '', deviceText: ''),
+    );
+
+    if (!selectedDevice.deviceName.toLowerCase().contains('pro')) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Sweat Level Selection',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Text(
+              ' *',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: _isSweatImageSelectionValid() ? Colors.white : Colors.red,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: _isLoadingSweatImages
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : _sweatImagesError != null
+              ? Column(
+                  children: [
+                    Text(
+                      'Error: $_sweatImagesError',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: _fetchSweatImages,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                )
+              : imageId != null && imageId != 0
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Selected: ${_sweatImages.firstWhere(
+                          (img) => img.id == imageId,
+                          orElse: () => SweatImageModel(id: 0, imagePath: '', sweatRange: '', implications: '', recomm: '', strategy: '', result: 'Unknown', colorcode: ''),
+                        ).result}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _showSweatImageSelection,
+                      child: const Text(
+                        'Change',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _showSweatImageSelection,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Select Sweat Level *'),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Sweat level selection is mandatory for Pro devices',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+        ),
+      ],
     );
   }
 }
