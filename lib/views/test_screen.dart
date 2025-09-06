@@ -5,12 +5,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
+import '../models/device_model.dart';
 import '../services/hydration_service.dart';
 import '../services/image_upload_service.dart';
 import '../services/user_service.dart';
-import '../viewmodels/hydration_viewmodel.dart';
 import '../viewmodels/device_viewmodel.dart';
-import '../models/device_model.dart';
+import '../viewmodels/hydration_viewmodel.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'test_summary_screen.dart';
@@ -38,7 +38,7 @@ class _TestScreenState extends State<TestScreen> {
       TextEditingController();
   final TextEditingController _timeTakenController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
-  
+
   // Selected device ID for the dropdown
   int? _selectedDeviceId;
 
@@ -57,7 +57,7 @@ class _TestScreenState extends State<TestScreen> {
 
     // Load user details and prefill height and weight fields
     _loadUserDetails();
-    
+
     // Fetch devices for the dropdown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DeviceViewModel>().fetchDevices();
@@ -165,7 +165,8 @@ class _TestScreenState extends State<TestScreen> {
 
       // Call hydration API
       final hydrationResponse = await HydrationService.submitHydrationData(
-        deviceType: _selectedDeviceId ?? 1, // Use selected device ID or default to 1
+        deviceType:
+            _selectedDeviceId ?? 1, // Use selected device ID or default to 1
         height: int.tryParse(_heightController.text) ?? 0,
         sweatPosition: int.tryParse(_sweatPositionController.text) ?? 0,
         timeTaken: int.tryParse(_timeTakenController.text) ?? 0,
@@ -911,7 +912,9 @@ class _TestScreenState extends State<TestScreen> {
             const SizedBox(height: 8),
             Container(
               decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.white, width: 1)),
+                border: Border(
+                  bottom: BorderSide(color: Colors.white, width: 1),
+                ),
               ),
               child: DropdownButtonFormField<int>(
                 value: _selectedDeviceId,
@@ -932,12 +935,41 @@ class _TestScreenState extends State<TestScreen> {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 12),
                 ),
-                items: deviceViewModel.devices.map<DropdownMenuItem<int>>((DeviceModel device) {
+                items: deviceViewModel.devices.map<DropdownMenuItem<int>>((
+                  DeviceModel device,
+                ) {
+                  // Determine which image to show based on device name
+                  String? imagePath;
+                  if (device.deviceName.toLowerCase().contains('classic') ||
+                      device.deviceName.toLowerCase().contains('plus')) {
+                    imagePath = 'assets/images/classic_plus.png';
+                  }
+                  if (device.deviceName.toLowerCase().contains('pro') ||
+                      device.deviceName.toLowerCase().contains('pro plus')) {
+                    imagePath = 'assets/images/pro_plus.png';
+                  }
+
                   return DropdownMenuItem<int>(
                     value: device.id,
-                    child: Text(
-                      device.deviceName,
-                      style: const TextStyle(color: Colors.white),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (imagePath != null) ...[
+                          Image.asset(
+                            imagePath,
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Flexible(
+                          child: Text(
+                            device.deviceName,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }).toList(),
