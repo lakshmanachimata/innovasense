@@ -957,8 +957,8 @@ class _TestScreenState extends State<TestScreen> {
                         if (imagePath != null) ...[
                           Image.asset(
                             imagePath,
-                            width: 24,
-                            height: 24,
+                            width: 36,
+                            height: 36,
                             fit: BoxFit.contain,
                           ),
                           const SizedBox(width: 8),
