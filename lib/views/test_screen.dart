@@ -13,6 +13,7 @@ import '../services/sweat_images_service.dart';
 import '../services/user_service.dart';
 import '../viewmodels/device_viewmodel.dart';
 import '../viewmodels/hydration_viewmodel.dart';
+import 'device_selection_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'sweat_image_selection_screen.dart';
@@ -132,6 +133,55 @@ class _TestScreenState extends State<TestScreen> {
     return true; // Not a pro device, no sweat image required
   }
 
+  // Navigate to device selection screen
+  Future<void> _showDeviceSelection() async {
+    final deviceViewModel = Provider.of<DeviceViewModel>(
+      context,
+      listen: false,
+    );
+
+    if (deviceViewModel.devices.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No devices available'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeviceSelectionScreen(
+          devices: deviceViewModel.devices,
+          selectedDeviceId: _selectedDeviceId,
+          onDeviceSelected: (selectedId) async {
+            setState(() {
+              _selectedDeviceId = selectedId;
+              imageId = 0; // Reset imageId when device changes
+            });
+
+            // Check if the selected device is pro/pro plus
+            final selectedDevice = deviceViewModel.devices.firstWhere(
+              (device) => device.id == selectedId,
+              orElse: () => DeviceModel(id: 0, deviceName: '', deviceText: ''),
+            );
+
+            if (selectedDevice.deviceName.toLowerCase().contains('pro')) {
+              // Fetch sweat images for pro devices
+              await _fetchSweatImages();
+              // Show selection dialog after images are loaded
+              if (_sweatImages.isNotEmpty) {
+                await _showSweatImageSelection();
+              }
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   // Navigate to sweat image selection screen
   Future<void> _showSweatImageSelection() async {
     if (_sweatImages.isEmpty) {
@@ -226,15 +276,7 @@ class _TestScreenState extends State<TestScreen> {
       return;
     }
 
-    if (_selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an image first'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    // Image upload is now optional - no validation required
 
     // Check if sweat image selection is required and completed
     if (!_isSweatImageSelectionValid()) {
@@ -253,36 +295,39 @@ class _TestScreenState extends State<TestScreen> {
         _isSubmitting = true;
       });
 
-      // First upload the image
-      print('Starting image upload...');
-      final uploadResponse = await ImageUploadService.uploadImage(
-        _selectedImage!,
-      );
+      // Handle image upload (optional)
+      String fullImagePath = '';
+      Map<String, dynamic>? uploadResponse;
 
-      // Store the upload response
-      _uploadedImageResponse = uploadResponse;
+      if (_selectedImage != null) {
+        print('Starting image upload...');
+        uploadResponse = await ImageUploadService.uploadImage(_selectedImage!);
 
-      print(
-        'Image uploaded successfully: ${uploadResponse['response']['filename']}',
-      );
+        print(
+          'Image uploaded successfully: ${uploadResponse['response']['filename']}',
+        );
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Image uploaded: ${uploadResponse['response']['filename']}',
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Image uploaded: ${uploadResponse['response']['filename']}',
+            ),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
+        );
 
-      // Now call the hydration API with the uploaded image path
+        // Construct the full image path using base URL and uploaded filepath
+        fullImagePath =
+            '${ApiConfig.baseUrl.replaceAll(':8500', ':8500')}/assets/innovo/${uploadResponse['response']['filename']}';
+        print('Full image path for hydration API: $fullImagePath');
+      } else {
+        print('No image selected - proceeding without image upload');
+        fullImagePath = ''; // Empty image path
+      }
+
+      // Now call the hydration API with the image path (empty if no image)
       print('Calling hydration API...');
-
-      // Construct the full image path using base URL and uploaded filepath
-      final fullImagePath =
-          '${ApiConfig.baseUrl.replaceAll(':8500', ':8500')}/assets/innovo/${uploadResponse['response']['filename']}';
-      print('Full image path for hydration API: $fullImagePath');
 
       // Call hydration API
       final hydrationResponse = await HydrationService.submitHydrationData(
@@ -305,7 +350,7 @@ class _TestScreenState extends State<TestScreen> {
       );
       hydrationViewModel.setHydrationData(hydrationResponse);
 
-      // Store the image upload response for later use
+      // Store the responses for later use
       _uploadedImageResponse = {
         'image_upload': uploadResponse,
         'hydration_data': hydrationResponse,
@@ -528,15 +573,12 @@ class _TestScreenState extends State<TestScreen> {
                                 const SizedBox(width: 16),
                                 ElevatedButton(
                                   onPressed:
-                                      (_selectedImage != null &&
-                                          _areAllFieldsFilled() &&
-                                          !_isSubmitting)
+                                      (_areAllFieldsFilled() && !_isSubmitting)
                                       ? _handleSubmit
                                       : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor:
-                                        (_selectedImage != null &&
-                                            _areAllFieldsFilled() &&
+                                        (_areAllFieldsFilled() &&
                                             !_isSubmitting)
                                         ? const Color(0xFF059669)
                                         : Colors.grey,
@@ -548,8 +590,7 @@ class _TestScreenState extends State<TestScreen> {
                                       borderRadius: BorderRadius.circular(8),
                                       side: BorderSide(
                                         color:
-                                            (_selectedImage != null &&
-                                                _areAllFieldsFilled() &&
+                                            (_areAllFieldsFilled() &&
                                                 !_isSubmitting)
                                             ? Colors.white
                                             : Colors.grey,
@@ -569,7 +610,25 @@ class _TestScreenState extends State<TestScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 2),
+                          // Note about optional image upload
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Upload a picture if you have any',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           // Test Parameters Form
                           Form(
                             key: _formKey,
@@ -618,7 +677,7 @@ class _TestScreenState extends State<TestScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 20),
-                                _buildDeviceTypeDropdown(),
+                                _buildDeviceSelection(),
                                 const SizedBox(height: 20),
                                 _buildSweatImageSelection(),
                                 const SizedBox(height: 20),
@@ -826,7 +885,7 @@ class _TestScreenState extends State<TestScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Processing Test Data...',
+                'Processing Hydrosense Data...',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -918,6 +977,20 @@ class _TestScreenState extends State<TestScreen> {
               if (isNumber && int.tryParse(value.trim()) == null) {
                 return '$label must be a valid number';
               }
+              // Special validation for sweat position
+              if (label.toLowerCase().contains('sweat position')) {
+                final sweatValue = int.tryParse(value.trim());
+                if (sweatValue != null && sweatValue <= 0) {
+                  return 'Sweat position must be greater than 0';
+                }
+              }
+              // Special validation for time taken
+              if (label.toLowerCase().contains('time taken')) {
+                final timeValue = int.tryParse(value.trim());
+                if (timeValue != null && timeValue <= 0) {
+                  return 'Time taken must be greater than 0';
+                }
+              }
               return null;
             },
             decoration: InputDecoration(
@@ -933,7 +1006,7 @@ class _TestScreenState extends State<TestScreen> {
     );
   }
 
-  Widget _buildDeviceTypeDropdown() {
+  Widget _buildDeviceSelection() {
     return Consumer<DeviceViewModel>(
       builder: (context, deviceViewModel, child) {
         if (deviceViewModel.isLoading) {
@@ -1035,95 +1108,41 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const SizedBox(height: 8),
             Container(
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.white, width: 1),
-                ),
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: DropdownButtonFormField<int>(
-                value: _selectedDeviceId,
-                onChanged: (int? newValue) async {
-                  setState(() {
-                    _selectedDeviceId = newValue;
-                    imageId = 0; // Reset imageId when device changes
-                  });
-
-                  // Check if the selected device is pro/pro plus
-                  if (newValue != null) {
-                    final deviceViewModel = Provider.of<DeviceViewModel>(
-                      context,
-                      listen: false,
-                    );
-                    final selectedDevice = deviceViewModel.devices.firstWhere(
-                      (device) => device.id == newValue,
-                      orElse: () =>
-                          DeviceModel(id: 0, deviceName: '', deviceText: ''),
-                    );
-
-                    if (selectedDevice.deviceName.toLowerCase().contains(
-                      'pro',
-                    )) {
-                      // Fetch sweat images for pro devices
-                      await _fetchSweatImages();
-                      // Show selection dialog after images are loaded
-                      if (_sweatImages.isNotEmpty) {
-                        await _showSweatImageSelection();
-                      }
-                    }
-                  }
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Device Type is required';
-                  }
-                  return null;
-                },
-                dropdownColor: Colors.black,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                ),
-                items: deviceViewModel.devices.map<DropdownMenuItem<int>>((
-                  DeviceModel device,
-                ) {
-                  // Determine which image to show based on device name
-                  String? imagePath;
-                  if (device.deviceName.toLowerCase().contains('classic') ||
-                      device.deviceName.toLowerCase().contains('plus')) {
-                    imagePath = 'assets/images/classic_plus.png';
-                  }
-                  if (device.deviceName.toLowerCase().contains('pro') ||
-                      device.deviceName.toLowerCase().contains('pro plus')) {
-                    imagePath = 'assets/images/pro_plus.png';
-                  }
-
-                  return DropdownMenuItem<int>(
-                    value: device.id,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+              child: _selectedDeviceId != null
+                  ? Row(
                       children: [
-                        if (imagePath != null) ...[
-                          Image.asset(
-                            imagePath,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Flexible(
+                        Expanded(
                           child: Text(
-                            device.deviceName,
+                            'Selected: ${deviceViewModel.devices.firstWhere(
+                              (device) => device.id == _selectedDeviceId,
+                              orElse: () => DeviceModel(id: 0, deviceName: '', deviceText: ''),
+                            ).deviceName}',
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
+                        TextButton(
+                          onPressed: _showDeviceSelection,
+                          child: const Text(
+                            'Change',
+                            style: TextStyle(color: Colors.green),
+                          ),
+                        ),
                       ],
+                    )
+                  : ElevatedButton(
+                      onPressed: _showDeviceSelection,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Select Device Type'),
                     ),
-                  );
-                }).toList(),
-                icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              ),
             ),
           ],
         );
