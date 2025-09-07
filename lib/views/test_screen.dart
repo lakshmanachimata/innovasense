@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -161,6 +162,7 @@ class _TestScreenState extends State<TestScreen> {
               _selectedDeviceId = selectedId;
               imageId = 0; // Reset imageId when device changes
             });
+
 
             // Check if the selected device is pro/pro plus
             final selectedDevice = deviceViewModel.devices.firstWhere(
@@ -419,7 +421,12 @@ class _TestScreenState extends State<TestScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: true,
-      body: Stack(
+      body: GestureDetector(
+        onTap: () {
+          // Hide keyboard when user taps outside text fields
+          FocusScope.of(context).unfocus();
+        },
+        child: Stack(
         children: [
           // Background Image
           Container(
@@ -726,6 +733,7 @@ class _TestScreenState extends State<TestScreen> {
           // Full-screen loader overlay during image upload
           if (_isSubmitting) _buildUploadLoader(),
         ],
+        ),
       ),
     );
   }
