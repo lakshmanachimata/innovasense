@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/banner_model.dart';
 import '../services/image_url_service.dart';
+import '../services/user_service.dart';
 import '../viewmodels/banner_viewmodel.dart';
 
 class IntroScreen extends StatefulWidget {
@@ -23,26 +24,34 @@ class _IntroScreenState extends State<IntroScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch banner images when screen initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bannerViewModel = context.read<BannerViewModel>();
-      bannerViewModel.fetchBannerImages();
+    // Fetch banner images only if user is not logged in
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final isLoggedIn = await UserService.isLoggedIn();
       
-      // Listen to banner changes
-      bannerViewModel.addListener(() {
-        if (bannerViewModel.hasBanners && !_autoPlayStarted) {
-          print('BannerViewModel changed, resetting auto-play');
-          _resetAutoPlay();
-          _startAutoPlay(bannerViewModel);
-        }
-      });
+      if (!isLoggedIn) {
+        print('User not logged in, fetching banner images');
+        final bannerViewModel = context.read<BannerViewModel>();
+        bannerViewModel.fetchBannerImages();
+        
+        // Listen to banner changes
+        bannerViewModel.addListener(() {
+          if (bannerViewModel.hasBanners && !_autoPlayStarted) {
+            print('BannerViewModel changed, resetting auto-play');
+            _resetAutoPlay();
+            _startAutoPlay(bannerViewModel);
+          }
+        });
+      } else {
+        print('User is logged in, skipping banner fetch');
+      }
     });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     _autoPlayTimer?.cancel();
+    _autoPlayTimer = null;
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -54,6 +63,13 @@ class _IntroScreenState extends State<IntroScreen> {
     if (bannerViewModel.banners.length > 1) {
       _autoPlayStarted = true;
       _autoPlayTimer = Timer.periodic(Duration(seconds: 3), (timer) {
+        // Check if PageController is still attached and mounted
+        if (!mounted || !_pageController.hasClients) {
+          print('PageController not attached, stopping auto-play');
+          _resetAutoPlay();
+          return;
+        }
+        
         if (bannerViewModel.currentIndex < bannerViewModel.banners.length - 1) {
           _pageController.animateToPage(
             bannerViewModel.currentIndex + 1,
@@ -75,6 +91,7 @@ class _IntroScreenState extends State<IntroScreen> {
   void _resetAutoPlay() {
     _autoPlayStarted = false;
     _autoPlayTimer?.cancel();
+    _autoPlayTimer = null;
     print('Auto-play reset');
   }
   
@@ -150,6 +167,7 @@ class _IntroScreenState extends State<IntroScreen> {
               
               print('Selector rebuild - Banner count: $bannerCount, Paths: $bannerPaths');
               
+              // Show default background if no banners (user logged in or no banners available)
               if (bannerViewModel.isLoading) {
                 return Container(
                   width: double.infinity,
@@ -221,7 +239,7 @@ class _IntroScreenState extends State<IntroScreen> {
               );
             },
           ),
-          // Loading overlay when banners are loading
+          // Loading overlay when banners are loading (only for non-logged in users)
           Consumer<BannerViewModel>(
             builder: (context, bannerViewModel, child) {
               if (bannerViewModel.isLoading) {
@@ -273,7 +291,7 @@ class _IntroScreenState extends State<IntroScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Banner pagination indicators at the top
+                // Banner pagination indicators at the top (only show when banners are available)
                 Consumer<BannerViewModel>(
                   builder: (context, bannerViewModel, child) {
                     if (bannerViewModel.banners.isEmpty) return SizedBox.shrink();
