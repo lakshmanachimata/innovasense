@@ -389,7 +389,7 @@ class _OTPScreenState extends State<OTPScreen> {
                               const SizedBox(height: 16),
                               // Login Instruction
                               const Text(
-                                'Simply Login with your CNumber and UserPin',
+                                'Simply Login with your CNumber and User PIN',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -426,7 +426,7 @@ class _OTPScreenState extends State<OTPScreen> {
                                     return null;
                                   },
                                   decoration: InputDecoration(
-                                    hintText: 'CNumber',
+                                    hintText: 'Contact Number',
                                     hintStyle: TextStyle(color: Colors.white),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(
@@ -465,7 +465,7 @@ class _OTPScreenState extends State<OTPScreen> {
                                     return null;
                                   },
                                   decoration: InputDecoration(
-                                    hintText: 'Enter UserPin',
+                                    hintText: 'Enter User PIN',
                                     hintStyle: TextStyle(color: Colors.white),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(

@@ -698,7 +698,7 @@ class _TestScreenState extends State<TestScreen> {
                                 _buildTestParameterField(
                                   'Sweat Position',
                                   _sweatPositionController,
-                                  'Enter sweat position (1-9)',
+                                  'Enter sweat position',
                                   isNumber: true,
                                 ),
                                 const SizedBox(height: 20),

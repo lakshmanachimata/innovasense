@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     // Login Instruction
                     const Text(
-                      'Simply Login with your CNumber',
+                      'Simply Login with your Contact Number',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -63,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                       child: const TextField(
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          hintText: 'CNumber',
+                          hintText: 'Contact Number',
                           hintStyle: TextStyle(color: Colors.white),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 16),

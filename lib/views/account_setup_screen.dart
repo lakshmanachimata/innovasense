@@ -219,8 +219,8 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                     // CNumber Field
                     _buildTextField(
                       controller: _cnumberController,
-                      label: 'CNumber',
-                      hint: 'Enter your CNumber',
+                      label: 'Contact Number',
+                      hint: 'Enter your Contact Number',
                       enabled: !_isLoading,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -239,8 +239,8 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                     // UserPin Field
                     _buildTextField(
                       controller: _userpinController,
-                      label: 'UserPin',
-                      hint: 'Enter your userpin',
+                      label: 'User PIN',
+                      hint: 'Enter your User PIN',
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       enabled: !_isLoading,
