@@ -64,7 +64,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
       final encryptedName = encryptService.getEncryptData(
         _usernameController.text,
       );
-      
+
       // Encrypt contact number only if provided
       String? encryptedCNumber;
       if (_cnumberController.text.trim().isNotEmpty) {
@@ -75,7 +75,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
 
       // Prepare user data
       final userData = UserModel(
-        username: encryptedName,
+        username: _usernameController.text.trim(),
         email: encryptedEmail,
         cnumber: encryptedCNumber,
         userpin: encryptedUserPin,
@@ -238,7 +238,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Email is required';
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value.trim())) {
                           return 'Please enter a valid email address';
                         }
                         return null;
