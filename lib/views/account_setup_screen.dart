@@ -166,7 +166,11 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Stack(
         children: [
           // Background Image
           Container(
@@ -474,6 +478,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

@@ -22,7 +22,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Stack(
         children: [
           // Background Image
           Container(
@@ -165,6 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
