@@ -11,7 +11,9 @@ import 'account_setup_screen.dart';
 import 'home_screen.dart';
 
 class OTPScreen extends StatefulWidget {
-  const OTPScreen({super.key});
+  final String? email;
+  
+  const OTPScreen({super.key, this.email});
 
   @override
   State<OTPScreen> createState() => _OTPScreenState();
@@ -19,7 +21,7 @@ class OTPScreen extends StatefulWidget {
 
 class _OTPScreenState extends State<OTPScreen> {
   final PageController _pageController = PageController();
-  final TextEditingController _cnumberController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _userpinController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   Timer? _autoPlayTimer;
@@ -29,6 +31,10 @@ class _OTPScreenState extends State<OTPScreen> {
   @override
   void initState() {
     super.initState();
+    // Pre-fill email if provided
+    if (widget.email != null) {
+      _emailController.text = widget.email!;
+    }
     // Fetch banner images when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final bannerViewModel = context.read<BannerViewModel>();
@@ -39,7 +45,7 @@ class _OTPScreenState extends State<OTPScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    _cnumberController.dispose();
+    _emailController.dispose();
     _userpinController.dispose();
     _autoPlayTimer?.cancel();
     super.dispose();
@@ -56,7 +62,7 @@ class _OTPScreenState extends State<OTPScreen> {
 
     try {
       final response = await LoginService.login(
-        _cnumberController.text.trim(),
+        _emailController.text.trim(),
         _userpinController.text,
       );
 
@@ -99,7 +105,7 @@ class _OTPScreenState extends State<OTPScreen> {
         errorMessage =
             'Connection failed. Please check your internet connection.';
       } else if (e.toString().contains('Invalid credentials')) {
-        errorMessage = 'Invalid CNumber or UserPin. Please try again.';
+        errorMessage = 'Invalid Email or UserPin. Please try again.';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -389,7 +395,7 @@ class _OTPScreenState extends State<OTPScreen> {
                               const SizedBox(height: 16),
                               // Login Instruction
                               const Text(
-                                'Simply Login with your CNumber and User PIN',
+                                'Simply Login with your Email ID and User PIN',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -398,7 +404,7 @@ class _OTPScreenState extends State<OTPScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              //CNumber Input
+                              //Email Input
                               Container(
                                 decoration: BoxDecoration(
                                   border: Border(
@@ -409,24 +415,21 @@ class _OTPScreenState extends State<OTPScreen> {
                                   ),
                                 ),
                                 child: TextFormField(
-                                  controller: _cnumberController,
+                                  controller: _emailController,
                                   enabled: !_isLoading,
                                   style: TextStyle(color: Colors.white),
-                                  keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                  ],
+                                  keyboardType: TextInputType.emailAddress,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {
-                                      return 'CNumber is required';
+                                      return 'Email is required';
                                     }
-                                    if (value.trim().length < 10) {
-                                      return 'CNumber must be at least 10 digits';
+                                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                                      return 'Please enter a valid email address';
                                     }
                                     return null;
                                   },
                                   decoration: InputDecoration(
-                                    hintText: 'Contact Number',
+                                    hintText: 'Email ID',
                                     hintStyle: TextStyle(color: Colors.white),
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.symmetric(

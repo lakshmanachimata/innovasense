@@ -5,8 +5,10 @@ class ApiConfig {
   static const String androidEmulatorUrl = 'http://10.0.2.2:8500';
 
   // For physical device (use your machine's actual IP address)
-  static const String physicalDeviceUrl =
-      'http://54.67.86.186:8500'; // Updated to your actual IP
+  // static const String physicalDeviceUrl =
+  //     'http://54.67.86.186:8500'; // Updated to your actual IP
+
+  static const String physicalDeviceUrl = 'http://192.168.1.7:8500';
 
   // For iOS Simulator
   static const String iosSimulatorUrl = 'http://localhost:8500';
@@ -17,7 +19,8 @@ class ApiConfig {
   // Get the appropriate URL based on platform
   static String get baseUrl {
     // Using localhost for local testing
-    return 'http://54.67.86.186:8500';
+    // return 'http://54.67.86.186:8500';
+    return 'http://192.168.1.7:8500';
   }
 
   // Banner API endpoint

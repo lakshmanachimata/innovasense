@@ -19,6 +19,7 @@ class AccountSetupScreen extends StatefulWidget {
 class _AccountSetupScreenState extends State<AccountSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _cnumberController = TextEditingController();
   final _userpinController = TextEditingController();
   final _ageController = TextEditingController();
@@ -31,6 +32,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   @override
   void dispose() {
     _usernameController.dispose();
+    _emailController.dispose();
     _cnumberController.dispose();
     _userpinController.dispose();
     _ageController.dispose();
@@ -53,8 +55,8 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
       final encryptService = EncryptDecryptService();
 
       // Encrypt sensitive data
-      final encryptedCNumber = encryptService.getEncryptData(
-        _cnumberController.text.trim(),
+      final encryptedEmail = encryptService.getEncryptData(
+        _emailController.text.trim(),
       );
       final encryptedUserPin = encryptService.getEncryptData(
         _userpinController.text,
@@ -62,10 +64,19 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
       final encryptedName = encryptService.getEncryptData(
         _usernameController.text,
       );
+      
+      // Encrypt contact number only if provided
+      String? encryptedCNumber;
+      if (_cnumberController.text.trim().isNotEmpty) {
+        encryptedCNumber = encryptService.getEncryptData(
+          _cnumberController.text.trim(),
+        );
+      }
 
       // Prepare user data
       final userData = UserModel(
         username: encryptedName,
+        email: encryptedEmail,
         cnumber: encryptedCNumber,
         userpin: encryptedUserPin,
         age: int.parse(_ageController.text.trim()),
@@ -216,20 +227,39 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // CNumber Field
+                    // Email Field
+                    _buildTextField(
+                      controller: _emailController,
+                      label: 'Email ID *',
+                      hint: 'Enter your Email ID',
+                      enabled: !_isLoading,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Email is required';
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                          return 'Please enter a valid email address';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    // CNumber Field (Optional)
                     _buildTextField(
                       controller: _cnumberController,
-                      label: 'Contact Number',
+                      label: 'Contact Number (Optional)',
                       hint: 'Enter your Contact Number',
                       enabled: !_isLoading,
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'CNumber is required';
-                        }
-                        if (value.trim().length < 10) {
-                          return 'CNumber must be at least 10 digits';
+                        // Contact number is optional, but if provided, validate it
+                        if (value != null && value.trim().isNotEmpty) {
+                          if (value.trim().length < 10) {
+                            return 'Contact number must be at least 10 digits';
+                          }
                         }
                         return null;
                       },

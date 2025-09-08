@@ -2,8 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'otp_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +57,7 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     // Login Instruction
                     const Text(
-                      'Simply Login with your Contact Number',
+                      'Simply Login with your Email ID',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -53,17 +66,19 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    // CNumber Input
+                    // Email Input
                     Container(
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(color: Colors.white, width: 1),
                         ),
                       ),
-                      child: const TextField(
+                      child: TextField(
+                        controller: _emailController,
                         style: TextStyle(color: Colors.white),
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          hintText: 'Contact Number',
+                          hintText: 'Email ID',
                           hintStyle: TextStyle(color: Colors.white),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 16),
@@ -73,17 +88,26 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     // OTP Information
                     const Text(
-                      'One time password (OTP) will be sent to this number',
+                      'One time password (OTP) will be sent to this email',
                       style: TextStyle(color: Colors.white, fontSize: 14),
                     ),
                     const SizedBox(height: 40),
                     // Get OTP Button
                     ElevatedButton(
                       onPressed: () {
+                        if (_emailController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter your email address'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const OTPScreen(),
+                            builder: (context) => OTPScreen(email: _emailController.text.trim()),
                           ),
                         );
                       },

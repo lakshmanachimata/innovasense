@@ -8,7 +8,7 @@ import 'user_service.dart';
 
 class LoginService {
   static Future<Map<String, dynamic>> login(
-    String cnumber,
+    String email,
     String userpin,
   ) async {
     try {
@@ -16,7 +16,7 @@ class LoginService {
       final encryptService = EncryptDecryptService();
 
       // Encrypt sensitive data
-      final encryptedCNumber = encryptService.getEncryptData(cnumber);
+      final encryptedEmail = encryptService.getEncryptData(email);
       final encryptedUserPin = encryptService.getEncryptData(userpin);
 
       final response = await http
@@ -27,7 +27,7 @@ class LoginService {
               'Content-Type': 'application/json',
             },
             body: jsonEncode({
-              'cnumber': encryptedCNumber,
+              'email': encryptedEmail,
               'userpin': encryptedUserPin,
             }),
           )

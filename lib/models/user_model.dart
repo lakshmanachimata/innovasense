@@ -1,6 +1,7 @@
 class UserModel {
   final String username;
-  final String cnumber;
+  final String email;
+  final String? cnumber;
   final String userpin;
   final int age;
   final String gender;
@@ -9,7 +10,8 @@ class UserModel {
 
   UserModel({
     required this.username,
-    required this.cnumber,
+    required this.email,
+    this.cnumber,
     required this.userpin,
     required this.age,
     required this.gender,
@@ -20,7 +22,8 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       username: json['username'] ?? '',
-      cnumber: json['cnumber'] ?? '',
+      email: json['email'] ?? '',
+      cnumber: json['cnumber'],
       userpin: json['userpin'] ?? '',
       age: json['age'] ?? 0,
       gender: json['gender'] ?? '',
@@ -32,6 +35,7 @@ class UserModel {
   Map<String, dynamic> toJson() {
     return {
       'username': username,
+      'email': email,
       'cnumber': cnumber,
       'userpin': userpin,
       'age': age,
@@ -43,6 +47,6 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(username: $username, cnumber: $cnumber, age: $age, gender: $gender, height: $height, weight: $weight)';
+    return 'UserModel(username: $username, email: $email, cnumber: $cnumber, age: $age, gender: $gender, height: $height, weight: $weight)';
   }
 }
