@@ -5,10 +5,11 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/sweat_image_model.dart';
+import 'encrypt_decrypt_service.dart';
 
 class SweatImagesService {
   static Future<List<SweatImageModel>> getSweatImages({
-    required String cnumber,
+    required String email,
     required String username,
   }) async {
     try {
@@ -16,6 +17,10 @@ class SweatImagesService {
         '${ApiConfig.baseUrl}/Services/protected/getSweatImages',
       );
       final jwtToken = await UserService.getJwtToken();
+      var reqBody = json.encode({
+        'email': EncryptDecryptService().getEncryptData(email),
+        'username': username,
+      });
       final response = await http.post(
         url,
         headers: {
@@ -23,7 +28,7 @@ class SweatImagesService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $jwtToken',
         },
-        body: json.encode({'cnumber': cnumber, 'username': username}),
+        body: reqBody,
       );
 
       if (response.statusCode == 200) {
@@ -39,7 +44,8 @@ class SweatImagesService {
           );
         }
       } else {
-        throw Exception('Failed to load sweat images: ${response.statusCode}');
+        final respData = json.decode(response.body);
+        throw Exception('Failed to load sweat images: ${respData}');
       }
     } catch (e) {
       throw Exception('Error fetching sweat images: $e');

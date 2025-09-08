@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:FitApp/services/encrypt_decrypt_service.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
@@ -30,7 +31,8 @@ class HydrationService {
 
       // Prepare the request payload
       final payload = {
-        "cnumber": userDetails['cnumber'] ?? '',
+        "email":
+            EncryptDecryptService().getEncryptData(userDetails['email']) ?? '',
         "device_type": deviceType,
         "height": height,
         "image_id": imageId,

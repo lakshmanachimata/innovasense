@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import '../models/user_history_model.dart';
+import 'encrypt_decrypt_service.dart';
 import 'user_service.dart';
 
 class UserHistoryService {
@@ -22,7 +23,7 @@ class UserHistoryService {
 
       // Prepare the request payload
       final payload = {
-        'cnumber': userDetails['cnumber'] ?? '',
+        'email': EncryptDecryptService().getEncryptData(userDetails['email'] ?? ''),
         'username': userDetails['username'] ?? '',
       };
 
