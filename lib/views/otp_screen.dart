@@ -566,44 +566,6 @@ class _OTPScreenState extends State<OTPScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 20),
-                              // Navigation Button
-                              Align(
-                                alignment: Alignment.bottomRight,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const HomeScreen(),
-                                      ),
-                                      (route) => false,
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(30),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_forward,
-                                      color: Colors.black,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
