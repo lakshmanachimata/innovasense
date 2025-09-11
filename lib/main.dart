@@ -1,6 +1,7 @@
 import 'package:FitApp/views/IntroScreen.dart';
 import 'package:FitApp/views/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'services/user_service.dart';
@@ -10,6 +11,14 @@ import 'viewmodels/user_history_viewmodel.dart';
 import 'viewmodels/device_viewmodel.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set preferred orientations to portrait only
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   runApp(const MyApp());
 }
 
