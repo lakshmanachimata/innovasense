@@ -31,7 +31,8 @@ analysis_benchmark.json
 *.DS_Store
 # packages file containing multi-root paths
 .packages.generated
-
+*.properties
+*.jks
 # Flutter/Dart/Pub related
 **/doc/api/
 .dart_tool/
