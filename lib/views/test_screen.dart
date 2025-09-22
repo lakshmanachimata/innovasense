@@ -994,6 +994,7 @@ class _TestScreenState extends State<TestScreen> {
               ),
               child: _selectedDeviceId != null
                   ? Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Expanded(
                           child: Text(
@@ -1102,6 +1103,7 @@ class _TestScreenState extends State<TestScreen> {
                 )
               : imageId != null && imageId != 0
               ? Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Expanded(
                       child: Text(

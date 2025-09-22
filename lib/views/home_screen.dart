@@ -6,6 +6,7 @@ import 'otp_screen.dart';
 import 'profile_screen.dart';
 import 'test_screen.dart';
 import 'user_history_screen.dart';
+import 'manual_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -398,11 +399,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
-                    // TODO: Navigate to manual logging screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Manual Logging feature coming soon!'),
-                        backgroundColor: Colors.blue,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ManualTestScreen(),
                       ),
                     );
                   },
