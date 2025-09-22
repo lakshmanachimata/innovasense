@@ -75,7 +75,6 @@ class _ManualTestScreenState extends State<ManualTestScreen> {
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          const SizedBox(height: 20),
                           // Title
                           const Text(
                             'Log Your Daily Activities',
