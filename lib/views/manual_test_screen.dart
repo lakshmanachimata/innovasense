@@ -5,7 +5,9 @@ import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import '../viewmodels/manual_test_viewmodel.dart';
 
 class ManualTestScreen extends StatefulWidget {
-  const ManualTestScreen({super.key});
+  final String? mode; // 'activity' or 'rest' or null for all
+  
+  const ManualTestScreen({super.key, this.mode});
 
   @override
   State<ManualTestScreen> createState() => _ManualTestScreenState();
@@ -97,47 +99,7 @@ class _ManualTestScreenState extends State<ManualTestScreen> {
                           Consumer<ManualTestViewModel>(
                             builder: (context, viewModel, child) {
                               return Column(
-                                children: [
-                                  // Water Intake Slider
-                                  _buildCircularSlider(
-                                    title: 'Water Intake',
-                                    subtitle: 'Liters per day',
-                                    value: viewModel.waterIntake,
-                                    minValue: 1.0,
-                                    maxValue: 5.0,
-                                    step: 0.5,
-                                    onChanged: viewModel.updateWaterIntake,
-                                    color: Colors.blue,
-                                    icon: Icons.water_drop,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // Sleep Hours Slider
-                                  _buildCircularSlider(
-                                    title: 'Sleep Hours',
-                                    subtitle: 'Hours per night',
-                                    value: viewModel.sleepHours,
-                                    minValue: 5.0,
-                                    maxValue: 10.0,
-                                    step: 0.5,
-                                    onChanged: viewModel.updateSleepHours,
-                                    color: Colors.purple,
-                                    icon: Icons.bedtime,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  // Steps Slider
-                                  _buildCircularSlider(
-                                    title: 'Daily Steps',
-                                    subtitle: 'Steps walked',
-                                    value: viewModel.steps.toDouble(),
-                                    minValue: 1000.0,
-                                    maxValue: 12000.0,
-                                    onChanged: (double value) =>
-                                        viewModel.updateSteps(value.round()),
-                                    color: Colors.green,
-                                    icon: Icons.directions_walk,
-                                    showKFormat: true,
-                                  ),
-                                ],
+                                children: _buildSlidersForMode(viewModel),
                               );
                             },
                           ),
@@ -350,5 +312,91 @@ class _ManualTestScreenState extends State<ManualTestScreen> {
       return value.toStringAsFixed(1);
     }
     return value.toString();
+  }
+
+  List<Widget> _buildSlidersForMode(ManualTestViewModel viewModel) {
+    List<Widget> sliders = [];
+    
+    // Always show Water Intake slider
+    sliders.add(
+      _buildCircularSlider(
+        title: 'Water Intake',
+        subtitle: 'Liters per day',
+        value: viewModel.waterIntake,
+        minValue: 1.0,
+        maxValue: 5.0,
+        step: 0.5,
+        onChanged: viewModel.updateWaterIntake,
+        color: Colors.blue,
+        icon: Icons.water_drop,
+      ),
+    );
+    
+    // Add spacing
+    sliders.add(const SizedBox(height: 20));
+    
+    // Add sliders based on mode
+    if (widget.mode == 'activity') {
+      // Activity mode: Water + Steps (no Sleep)
+      sliders.add(
+        _buildCircularSlider(
+          title: 'Daily Steps',
+          subtitle: 'Steps walked',
+          value: viewModel.steps.toDouble(),
+          minValue: 1000.0,
+          maxValue: 12000.0,
+          onChanged: (double value) => viewModel.updateSteps(value.round()),
+          color: Colors.green,
+          icon: Icons.directions_walk,
+          showKFormat: true,
+        ),
+      );
+    } else if (widget.mode == 'rest') {
+      // Rest mode: Water + Sleep (no Steps)
+      sliders.add(
+        _buildCircularSlider(
+          title: 'Sleep Hours',
+          subtitle: 'Hours per night',
+          value: viewModel.sleepHours,
+          minValue: 5.0,
+          maxValue: 10.0,
+          step: 0.5,
+          onChanged: viewModel.updateSleepHours,
+          color: Colors.purple,
+          icon: Icons.bedtime,
+        ),
+      );
+    } else {
+      // Default mode: All sliders (Water + Sleep + Steps)
+      sliders.add(
+        _buildCircularSlider(
+          title: 'Sleep Hours',
+          subtitle: 'Hours per night',
+          value: viewModel.sleepHours,
+          minValue: 5.0,
+          maxValue: 10.0,
+          step: 0.5,
+          onChanged: viewModel.updateSleepHours,
+          color: Colors.purple,
+          icon: Icons.bedtime,
+        ),
+      );
+      sliders.add(const SizedBox(height: 20));
+      sliders.add(
+        _buildCircularSlider(
+          title: 'Daily Steps',
+          subtitle: 'Steps walked',
+          value: viewModel.steps.toDouble(),
+          minValue: 1000.0,
+          maxValue: 12000.0,
+          onChanged: (double value) => viewModel.updateSteps(value.round()),
+          color: Colors.green,
+          icon: Icons.directions_walk,
+          showKFormat: true,
+        ),
+      );
+    }
+    
+    return sliders;
   }
 }

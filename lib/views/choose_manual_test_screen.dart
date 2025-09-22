@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'manual_test_screen.dart';
 
 class ChooseManualTestScreen extends StatelessWidget {
   const ChooseManualTestScreen({super.key});
@@ -88,36 +89,42 @@ class ChooseManualTestScreen extends StatelessWidget {
                                 icon: Icons.directions_walk,
                                 title: 'Hydration Balance\nwith Activity',
                                 color: Colors.blue,
+                                onTap: () => _navigateToManualTest(context, 'activity'),
                               ),
                               _buildTrackingOption(
                                 context,
                                 icon: Icons.person,
                                 title: 'Hydration\n& Balance',
                                 color: Colors.purple,
+                                onTap: () => _showComingSoonDialog(context, 'Hydration & Balance'),
                               ),
                               _buildTrackingOption(
                                 context,
                                 icon: Icons.bedtime,
                                 title: 'Rest &\nRehydrate',
                                 color: Colors.indigo,
+                                onTap: () => _navigateToManualTest(context, 'rest'),
                               ),
                               _buildTrackingOption(
                                 context,
                                 icon: Icons.favorite,
                                 title: 'Menstrual Cycle\n/ Pregnancy',
                                 color: Colors.pink,
+                                onTap: () => _showComingSoonDialog(context, 'Menstrual Cycle / Pregnancy'),
                               ),
                               _buildTrackingOption(
                                 context,
                                 icon: Icons.local_cafe,
                                 title: 'Caffeine',
                                 color: Colors.brown,
+                                onTap: () => _showComingSoonDialog(context, 'Caffeine'),
                               ),
                               _buildTrackingOption(
                                 context,
                                 icon: Icons.all_inclusive,
                                 title: 'All',
                                 color: Colors.green,
+                                onTap: () => _showComingSoonDialog(context, 'All'),
                               ),
                             ],
                           ),
@@ -139,11 +146,10 @@ class ChooseManualTestScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required Color color,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        _showComingSoonDialog(context, title);
-      },
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
@@ -187,6 +193,15 @@ class ChooseManualTestScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _navigateToManualTest(BuildContext context, String mode) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ManualTestScreen(mode: mode),
       ),
     );
   }
