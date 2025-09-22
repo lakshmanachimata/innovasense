@@ -7,6 +7,7 @@ import 'profile_screen.dart';
 import 'test_screen.dart';
 import 'user_history_screen.dart';
 import 'manual_test_screen.dart';
+import 'choose_manual_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -402,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ManualTestScreen(),
+                        builder: (context) => const ChooseManualTestScreen(),
                       ),
                     );
                   },
