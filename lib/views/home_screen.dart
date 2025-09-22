@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../services/user_service.dart';
 import '../services/encrypt_decrypt_service.dart';
+import '../services/user_service.dart';
 import 'otp_screen.dart';
 import 'profile_screen.dart';
 import 'test_screen.dart';
@@ -29,8 +29,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (userDetails != null) {
       setState(() {
         _userDetails = userDetails;
-        final decryptedUsername = EncryptDecryptService().getDecryptData(userDetails['username'] ?? '');
-        _username = decryptedUsername.isNotEmpty ? decryptedUsername : 'User Name';
+        final decryptedUsername = EncryptDecryptService().getDecryptData(
+          userDetails['username'] ?? '',
+        );
+        _username = decryptedUsername.isNotEmpty
+            ? decryptedUsername
+            : 'User Name';
       });
     }
   }
@@ -158,12 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const TestScreen(),
-                                  ),
-                                );
+                                _showTestOptionsDialog(context);
                               },
                               child: Container(
                                 height: 140,
@@ -368,6 +367,154 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showTestOptionsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Choose Test Type',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Manual Logging Card
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    // TODO: Navigate to manual logging screen
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Manual Logging feature coming soon!'),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.blue.withOpacity(0.3),
+                          Colors.blue.withOpacity(0.1),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.edit_note,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Manual Logging',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Automatic Monitor Card
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TestScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.green.withOpacity(0.3),
+                          Colors.green.withOpacity(0.1),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.device_hub,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Automatic Monitor',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '(Innovosense device)',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Cancel Button
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
